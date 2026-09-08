@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.py[cod]
+db.sqlite3*
+media/
+staticfiles/
+.env
+.local-credentials
+.DS_Store
+test-results/
+.runtime/
+
+# Local data and environment variants must stay outside the public repository.
+.env.*
+!.env.example
+*.sqlite3*
+*.xlsx
+*.xls
+*.xlsm
+*.csv
+*.tsv
+*.log

@@ -1,0 +1,1700 @@
+# Uzbek (Latin) interface for MetalFlow. Workbook contents remain unchanged.
+msgid ""
+msgstr ""
+"Project-Id-Version: MetalFlow\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-07 21:21+0500\n"
+"PO-Revision-Date: 2026-09-07 21:15+0500\n"
+"Last-Translator: MetalFlow\n"
+"Language-Team: Uzbek\n"
+"Language: uz\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ledger/context.py:12 templates/ledger/imports.html:5
+msgid "Перетащите файл сюда"
+msgstr "Faylni shu yerga olib keling"
+
+#: ledger/context.py:13
+msgid "Выберите .xlsx размером до 10 МБ."
+msgstr "Hajmi 10 MB gacha bo‘lgan .xlsx faylini tanlang."
+
+#: ledger/context.py:14
+msgid "Проверяем книгу…"
+msgstr "Excel kitobi tekshirilmoqda…"
+
+#: ledger/context.py:15
+msgid "Загрузите операции с датами, чтобы увидеть динамику."
+msgstr "O‘zgarishlarni ko‘rish uchun sanasi ko‘rsatilgan operatsiyalarni yuklang."
+
+#: ledger/context.py:16 ledger/models.py:56 ledger/services/importing.py:315
+#: templates/ledger/dashboard.html:7 templates/ledger/dashboard.html:11
+#: templates/ledger/operations.html:3 templates/ledger/operations.html:4
+msgid "Приход"
+msgstr "Kirim"
+
+#: ledger/context.py:16 ledger/models.py:57 ledger/services/importing.py:315
+#: templates/ledger/dashboard.html:8 templates/ledger/dashboard.html:11
+#: templates/ledger/operations.html:3 templates/ledger/operations.html:4
+msgid "Расход"
+msgstr "Chiqim"
+
+#: ledger/context.py:17 templates/ledger/record_detail.html:2
+msgid "кг"
+msgstr "kg"
+
+#: ledger/context.py:18
+msgid "янв"
+msgstr "yan"
+
+#: ledger/context.py:18
+msgid "фев"
+msgstr "fev"
+
+#: ledger/context.py:18
+msgid "мар"
+msgstr "mar"
+
+#: ledger/context.py:18
+msgid "апр"
+msgstr "apr"
+
+#: ledger/context.py:19
+msgid "май"
+msgstr "may"
+
+#: ledger/context.py:19
+msgid "июн"
+msgstr "iyn"
+
+#: ledger/context.py:19
+msgid "июл"
+msgstr "iyl"
+
+#: ledger/context.py:19
+msgid "авг"
+msgstr "avg"
+
+#: ledger/context.py:20
+msgid "сен"
+msgstr "sen"
+
+#: ledger/context.py:20
+msgid "окт"
+msgstr "okt"
+
+#: ledger/context.py:20
+msgid "ноя"
+msgstr "noy"
+
+#: ledger/context.py:20
+msgid "дек"
+msgstr "dek"
+
+#: ledger/forms.py:11
+msgid "Проверьте имя пользователя и пароль. Учитывайте регистр букв."
+msgstr "Foydalanuvchi nomi va parolni tekshiring. Katta-kichik harflarga e’tibor bering."
+
+#: ledger/forms.py:12
+msgid "Эта учётная запись отключена."
+msgstr "Bu hisob o‘chirilgan."
+
+#: ledger/forms.py:17
+msgid "Имя пользователя"
+msgstr "Foydalanuvchi nomi"
+
+#: ledger/forms.py:18
+msgid "Пароль"
+msgstr "Parol"
+
+#: ledger/forms.py:22
+msgid "Файл Excel"
+msgstr "Excel fayli"
+
+#: ledger/forms.py:23 templates/ledger/imports.html:6
+msgid "Дата снимка"
+msgstr "Ma’lumotlar sanasi"
+
+#: ledger/forms.py:24
+msgid "Если не указать, возьмём дату из имени файла. Даты самих операций не изменятся."
+msgstr "Ko‘rsatilmasa, sana fayl nomidan olinadi. Operatsiyalarning sanalari o‘zgarmaydi."
+
+#: ledger/forms.py:34
+msgid "Дата начала должна быть раньше даты окончания."
+msgstr "Boshlanish sanasi tugash sanasidan oldin bo‘lishi kerak."
+
+#: ledger/forms.py:44 ledger/services/importing.py:159
+msgid "Металл"
+msgstr "Metall"
+
+#: ledger/forms.py:44 ledger/services/importing.py:160
+msgid "Транспорт"
+msgstr "Transport"
+
+#: ledger/forms.py:44 ledger/services/importing.py:161
+msgid "Расчёты с партнёрами"
+msgstr "Hamkorlar bilan hisob-kitoblar"
+
+#: ledger/forms.py:44 ledger/services/importing.py:162
+msgid "Хозяйственные расходы"
+msgstr "Xo‘jalik xarajatlari"
+
+#: ledger/forms.py:44 ledger/services/importing.py:165
+#: ledger/services/importing.py:320
+msgid "Прочее"
+msgstr "Boshqa"
+
+#: ledger/forms.py:53
+msgid "Сумма операции не может быть нулевой."
+msgstr "Operatsiya summasi nol bo‘lishi mumkin emas."
+
+#: ledger/forms.py:71
+msgid "Тара не может превышать брутто."
+msgstr "Tara brutto vaznidan oshmasligi kerak."
+
+#: ledger/i18n.py:9
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr "Qiymat %(limit_value)s dan katta bo‘lmasligi kerak."
+
+#: ledger/i18n.py:10
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr "Qiymat %(limit_value)s dan kichik bo‘lmasligi kerak."
+
+#: ledger/i18n.py:18
+#, python-format
+msgid "Ошибка Excel %(error)s. Исходная формула сохранена; значение исключено из расчётов."
+msgstr "Excel xatosi %(error)s. Asl formula saqlandi; qiymat hisob-kitoblardan chiqarildi."
+
+#: ledger/i18n.py:20
+#, python-format
+msgid "В исходный итог включена корректировка %(amount)s UZS. Она не является поставкой и не добавляется к стоимости отгрузок."
+msgstr "Asl jami summaga %(amount)s UZS tuzatish kiritilgan. Bu yetkazib berish emas va jo‘natmalar qiymatiga qo‘shilmaydi."
+
+#: ledger/i18n.py:22
+#, python-format
+msgid "%(count)s денежных операций без даты. Они входят в общий итог, но не в отчёты за период."
+msgstr "%(count)s ta pul operatsiyasida sana yo‘q. Ular umumiy jami summaga kiritiladi, ammo davr hisobotlariga kiritilmaydi."
+
+#: ledger/i18n.py:24
+#, python-format
+msgid "Строка %(row)s: %(error)s"
+msgstr "%(row)s-qator: %(error)s"
+
+#: ledger/models.py:10
+msgid "На проверке"
+msgstr "Tekshirish bosqichida"
+
+#: ledger/models.py:11
+msgid "Импортирован"
+msgstr "Import qilingan"
+
+#: ledger/models.py:12
+msgid "Архив"
+msgstr "Arxiv"
+
+#: ledger/models.py:58 ledger/models.py:75 ledger/services/importing.py:34
+#: ledger/services/importing.py:35 ledger/services/importing.py:215
+#: ledger/services/importing.py:216 ledger/services/importing.py:246
+#: templates/ledger/dashboard.html:13 templates/ledger/deliveries.html:5
+#: templates/ledger/operations.html:4
+msgid "Дата"
+msgstr "Sana"
+
+#: ledger/models.py:59 templates/ledger/operations.html:4
+msgid "Тип операции"
+msgstr "Operatsiya turi"
+
+#: ledger/models.py:60 templates/ledger/dashboard.html:13
+#: templates/ledger/operations.html:4
+msgid "Сумма, UZS"
+msgstr "Summa, UZS"
+
+#: ledger/models.py:61
+msgid "Отрицательная сумма означает сторно в выбранном типе операции."
+msgstr "Manfiy summa tanlangan operatsiya turidagi storno — teskari yozuvni bildiradi."
+
+#: ledger/models.py:62
+msgid "Назначение платежа"
+msgstr "To‘lov maqsadi"
+
+#: ledger/models.py:63 ledger/services/importing.py:34
+#: templates/ledger/dashboard.html:13 templates/ledger/operations.html:4
+#: templates/ledger/record_detail.html:2
+msgid "Категория"
+msgstr "Toifa"
+
+#: ledger/models.py:64 ledger/models.py:77 ledger/services/importing.py:34
+#: ledger/services/importing.py:35 templates/ledger/partners.html:5
+#: templates/ledger/partners.html:6 templates/ledger/record_detail.html:2
+msgid "Контрагент"
+msgstr "Hamkor"
+
+#: ledger/models.py:73 ledger/services/importing.py:323
+#: templates/ledger/deliveries.html:4
+msgid "Отгрузка"
+msgstr "Jo‘natish"
+
+#: ledger/models.py:74 ledger/services/importing.py:323
+#: templates/ledger/deliveries.html:4
+msgid "Приёмка"
+msgstr "Qabul qilish"
+
+#: ledger/models.py:76 ledger/services/importing.py:35
+#: templates/ledger/deliveries.html:4 templates/ledger/deliveries.html:5
+msgid "Направление"
+msgstr "Yo‘nalish"
+
+#: ledger/models.py:78
+msgid "Номер машины / описание"
+msgstr "Mashina raqami / tavsif"
+
+#: ledger/models.py:79 templates/ledger/deliveries.html:5
+msgid "Брутто, кг"
+msgstr "Brutto, kg"
+
+#: ledger/models.py:80 templates/ledger/deliveries.html:5
+msgid "Тара, кг"
+msgstr "Tara, kg"
+
+#: ledger/models.py:81
+msgid "Скидка, %"
+msgstr "Chegirma, %"
+
+#: ledger/models.py:83
+msgid "Цена, UZS/кг"
+msgstr "Narx, UZS/kg"
+
+#: ledger/models.py:84 ledger/services/importing.py:35
+#: templates/ledger/record_detail.html:2
+msgid "Примечание"
+msgstr "Izoh"
+
+#: ledger/services/importing.py:28
+msgid "Объёмы и остатки"
+msgstr "Hajmlar va qoldiqlar"
+
+#: ledger/services/importing.py:28
+msgid "Расчёты и распределение прибыли"
+msgstr "Hisob-kitoblar va foyda taqsimoti"
+
+#: ledger/services/importing.py:29
+msgid "Отгрузки металла и взаиморасчёты"
+msgstr "Metall jo‘natmalari va o‘zaro hisob-kitoblar"
+
+#: ledger/services/importing.py:29
+msgid "Приёмка по контрагентам"
+msgstr "Hamkorlar bo‘yicha qabul qilish"
+
+#: ledger/services/importing.py:30
+msgid "Сводка взаиморасчётов"
+msgstr "O‘zaro hisob-kitoblar jamlanmasi"
+
+#: ledger/services/importing.py:30
+msgid "Основной денежный журнал"
+msgstr "Asosiy pul operatsiyalari jurnali"
+
+#: ledger/services/importing.py:31
+msgid "Бонусы по чермету"
+msgstr "Qora metall bonuslari"
+
+#: ledger/services/importing.py:31
+msgid "Расчёты с Рахимом"
+msgstr "Rahim bilan hisob-kitoblar"
+
+#: ledger/services/importing.py:31
+msgid "Объёмы по объектам"
+msgstr "Obyektlar bo‘yicha hajmlar"
+
+#: ledger/services/importing.py:32
+msgid "Оплаты и стоимость товара"
+msgstr "To‘lovlar va tovar qiymati"
+
+#: ledger/services/importing.py:32
+msgid "Расходы по гостинице"
+msgstr "Mehmonxona xarajatlari"
+
+#: ledger/services/importing.py:33
+msgid "Дополнительные бонусы"
+msgstr "Qo‘shimcha bonuslar"
+
+#: ledger/services/importing.py:33
+msgid "Приёмка чугуна"
+msgstr "Cho‘yan qabul qilish"
+
+#: ledger/services/importing.py:34 templates/ledger/dashboard.html:13
+#: templates/ledger/operations.html:4
+msgid "Тип"
+msgstr "Tur"
+
+#: ledger/services/importing.py:34 templates/ledger/record_detail.html:2
+msgid "Назначение"
+msgstr "Maqsad"
+
+#: ledger/services/importing.py:92
+msgid "Нет сохранённого результата формулы. Пересчитайте файл в Excel; ячейка недоступна."
+msgstr "Formulaning saqlangan natijasi yo‘q. Faylni Excel’da qayta hisoblang; katak qiymati mavjud emas."
+
+#: ledger/services/importing.py:170
+msgid "Выберите файл .xlsx размером не больше 10 МБ."
+msgstr "Hajmi 10 MB dan oshmaydigan .xlsx faylini tanlang."
+
+#: ledger/services/importing.py:174
+msgid "Файл слишком велик после распаковки."
+msgstr "Faylning arxivdan chiqarilgan hajmi juda katta."
+
+#: ledger/services/importing.py:176
+msgid "Файлы с макросами не поддерживаются."
+msgstr "Makrosli fayllar qo‘llab-quvvatlanmaydi."
+
+#: ledger/services/importing.py:180
+msgid "Не удалось прочитать Excel. Проверьте, что файл не повреждён и не защищён паролем."
+msgstr "Excel faylini o‘qib bo‘lmadi. Fayl buzilmaganini va parol bilan himoyalanmaganini tekshiring."
+
+#: ledger/services/importing.py:183
+msgid "Поддерживаются книги до 30 листов, 12 000 строк и 64 колонок на лист."
+msgstr "30 tagacha varaq, har bir varaqda 12 000 tagacha qator va 64 tagacha ustun qo‘llab-quvvatlanadi."
+
+#: ledger/services/importing.py:211
+msgid "Исходные данные"
+msgstr "Asl ma’lumotlar"
+
+#: ledger/services/importing.py:217 templates/ledger/record_detail.html:2
+msgid "Брутто"
+msgstr "Brutto"
+
+#: ledger/services/importing.py:217 templates/ledger/record_detail.html:2
+msgid "Тара"
+msgstr "Tara"
+
+#: ledger/services/importing.py:218 templates/ledger/record_detail.html:2
+msgid "Цена"
+msgstr "Narx"
+
+#: ledger/services/importing.py:220
+msgid "Названия листов знакомы, но колонки отличаются от образца. Импорт остановлен, чтобы не перепутать суммы."
+msgstr "Varaq nomlari mos, ammo ustunlar namunadan farq qiladi. Summalar adashmasligi uchun import to‘xtatildi."
+
+#: ledger/services/importing.py:230
+msgid "Не удалось прочитать сумму операции. Пересчитайте и исправьте формулу перед импортом."
+msgstr "Operatsiya summasini o‘qib bo‘lmadi. Importdan oldin formulani tuzating va qayta hisoblang."
+
+#: ledger/services/importing.py:260
+msgid "Поставка пропущена: проверьте брутто, тару, цену и скидку."
+msgstr "Yetkazib berish o‘tkazib yuborildi: brutto, tara, narx va chegirmani tekshiring."
+
+#: ledger/services/importing.py:267
+msgid "Стоимость поставки превышает допустимый размер числа."
+msgstr "Yetkazib berish qiymati ruxsat etilgan son chegarasidan oshgan."
+
+#: ledger/services/importing.py:285
+msgid "Смешанные суммы UZS/USD и текстовые заметки сохранены в исходном листе, без пересчёта валют."
+msgstr "Aralash UZS/USD summalari va matnli qaydlar asl varaqda saqlandi, valyutalar qayta hisoblanmadi."
+
+#: ledger/services/importing.py:294
+msgid "Начальный долг из строки 4 сохранён как расход по исходному журналу. Сальдо журнала не означает прибыль."
+msgstr "4-qatordagi boshlang‘ich qarz asl jurnalga muvofiq chiqim sifatida saqlandi. Jurnal saldosi foydani anglatmaydi."
+
+#: ledger/services/importing.py:295 ledger/services/importing.py:296
+#: ledger/services/importing.py:348 templates/ledger/base.html:14
+msgid "Операции"
+msgstr "Operatsiyalar"
+
+#: ledger/services/importing.py:295 ledger/views.py:236
+msgid "Поставки"
+msgstr "Yetkazib berishlar"
+
+#: ledger/services/importing.py:300
+msgid "Колонки не совпадают с шаблоном. Скачайте шаблон на странице импорта."
+msgstr "Ustunlar shablonga mos emas. Import sahifasidan shablonni yuklab oling."
+
+#: ledger/services/importing.py:309
+msgid "ID повторяется внутри файла"
+msgstr "fayl ichida ID takrorlangan"
+
+#: ledger/services/importing.py:313
+msgid "некорректная дата"
+msgstr "sana noto‘g‘ri"
+
+#: ledger/services/importing.py:318
+msgid "нужны тип, ненулевая сумма и назначение"
+msgstr "tur, noldan farqli summa va to‘lov maqsadi kerak"
+
+#: ledger/services/importing.py:326
+msgid "заполните направление, контрагента, машину и числовые поля"
+msgstr "yo‘nalish, hamkor, mashina va raqamli maydonlarni to‘ldiring"
+
+#: ledger/services/importing.py:328
+msgid "недопустимые веса, цена или скидка"
+msgstr "vazn, narx yoki chegirma noto‘g‘ri"
+
+#: ledger/services/importing.py:339
+msgid "ID уже существует. Строка пропущена; существующая запись не изменяется."
+msgstr "ID avvaldan mavjud. Qator o‘tkazib yuborildi; mavjud yozuv o‘zgarmaydi."
+
+#: ledger/services/importing.py:345
+msgid "Формат не распознан. Загрузите полную книгу с листами «Приход-Расход», «тура ака», «Кунлик» либо наш шаблон «Операции» / «Поставки»."
+msgstr "Format aniqlanmadi. «Приход-Расход», «тура ака», «Кунлик» varaqlari mavjud to‘liq kitobni yoki «Операции» / «Поставки» shablonimizni yuklang."
+
+#: ledger/services/importing.py:379
+msgid "Этот файл уже обработан. Повторный импорт не выполнен."
+msgstr "Bu fayl avval qayta ishlangan. Takroriy import bajarilmadi."
+
+#: ledger/services/importing.py:381
+msgid "Исправьте ошибки в файле и загрузите его заново. Частичный импорт отключён."
+msgstr "Fayldagi xatolarni tuzating va uni qayta yuklang. Qisman import o‘chirilgan."
+
+#: ledger/services/importing.py:396
+msgid "Excel импортирован"
+msgstr "Excel import qilindi"
+
+#: ledger/templatetags/ledger_tags.py:27
+msgid "млрд"
+msgstr "mlrd"
+
+#: ledger/templatetags/ledger_tags.py:27
+msgid "млн"
+msgstr "mln"
+
+#: ledger/templatetags/ledger_tags.py:27
+msgid "тыс."
+msgstr "ming"
+
+#: ledger/views.py:70 templates/ledger/base.html:13
+#: templates/ledger/dashboard.html:2
+msgid "Обзор бизнеса"
+msgstr "Biznes ko‘rsatkichlari"
+
+#: ledger/views.py:81 ledger/views.py:236 templates/ledger/exports.html:5
+#: templates/ledger/operations.html:2
+msgid "Денежные операции"
+msgstr "Pul operatsiyalari"
+
+#: ledger/views.py:88 templates/ledger/base.html:15
+#: templates/ledger/deliveries.html:2 templates/ledger/exports.html:6
+#: templates/ledger/imports.html:7
+msgid "Поставки металла"
+msgstr "Metall yetkazib berish"
+
+#: ledger/views.py:104 ledger/views.py:236 templates/ledger/base.html:16
+#: templates/ledger/dashboard.html:3 templates/ledger/exports.html:7
+#: templates/ledger/partners.html:2
+msgid "Взаиморасчёты"
+msgstr "O‘zaro hisob-kitoblar"
+
+#: ledger/views.py:114
+msgid "Запись связана с Excel. Исправьте исходный файл и загрузите новый снимок; происхождение данных сохранится."
+msgstr "Yozuv Excel bilan bog‘langan. Asl faylni tuzating va yangi nusxasini yuklang; ma’lumot manbasi saqlanadi."
+
+#: ledger/views.py:119
+msgid "Операция сохранена"
+msgstr "Operatsiya saqlandi"
+
+#: ledger/views.py:119
+msgid "Поставка сохранена"
+msgstr "Yetkazib berish saqlandi"
+
+#: ledger/views.py:121
+msgid "Изменения сохранены. Итоги обновлены."
+msgstr "O‘zgarishlar saqlandi. Jami ko‘rsatkichlar yangilandi."
+
+#: ledger/views.py:123
+msgid "Редактирование"
+msgstr "Tahrirlash"
+
+#: ledger/views.py:123 templates/ledger/dashboard.html:2
+msgid "Новая операция"
+msgstr "Yangi operatsiya"
+
+#: ledger/views.py:123 templates/ledger/deliveries.html:2
+msgid "Новая поставка"
+msgstr "Yangi yetkazib berish"
+
+#: ledger/views.py:136
+msgid "Карточка операции"
+msgstr "Operatsiya tafsilotlari"
+
+#: ledger/views.py:136
+msgid "Карточка поставки"
+msgstr "Yetkazib berish tafsilotlari"
+
+#: ledger/views.py:148
+msgid "Запись удалена из учёта"
+msgstr "Yozuv hisobdan chiqarildi"
+
+#: ledger/views.py:149
+msgid "Запись удалена из текущего учёта."
+msgstr "Yozuv joriy hisobdan chiqarildi."
+
+#: ledger/views.py:158
+msgid "Максимальный размер файла — 10 МБ."
+msgstr "Faylning maksimal hajmi — 10 MB."
+
+#: ledger/views.py:163
+msgid "Этот файл уже загружен. Открыта существующая проверка; дубликат не создан."
+msgstr "Bu fayl avval yuklangan. Oldingi tekshiruv ochildi; takroriy nusxa yaratilmadi."
+
+#: ledger/views.py:167 templates/ledger/base.html:18
+#: templates/ledger/imports.html:2
+msgid "Импорт Excel"
+msgstr "Excel importi"
+
+#: ledger/views.py:174
+msgid "Проверка файла"
+msgstr "Faylni tekshirish"
+
+#: ledger/views.py:185
+msgid "Импорт завершён. Данные доступны в учёте и отчётах."
+msgstr "Import yakunlandi. Ma’lumotlar hisob va hisobotlarda mavjud."
+
+#: ledger/views.py:193 templates/ledger/base.html:20
+#: templates/ledger/sheets.html:1
+msgid "Исходные листы"
+msgstr "Asl varaqlar"
+
+#: ledger/views.py:215 templates/ledger/base.html:19
+#: templates/ledger/exports.html:2
+msgid "Экспорт и отчёты"
+msgstr "Eksport va hisobotlar"
+
+#: ledger/views.py:227
+msgid "Некорректный период выгрузки."
+msgstr "Eksport davri noto‘g‘ri ko‘rsatilgan."
+
+#: ledger/views.py:236
+msgid "Шаблон скачан"
+msgstr "Shablon yuklab olindi"
+
+#: ledger/views.py:236
+msgid "Отчёт экспортирован"
+msgstr "Hisobot eksport qilindi"
+
+#: ledger/views.py:236
+msgid "Полный отчёт"
+msgstr "To‘liq hisobot"
+
+#: ledger/views.py:248 templates/ledger/help.html:1
+msgid "Как работать с MetalFlow"
+msgstr "MetalFlow bilan ishlash"
+
+#: templates/ledger/base.html:3
+msgid "MetalFlow — операции, поставки металла и взаиморасчёты в одном рабочем пространстве."
+msgstr "MetalFlow — pul operatsiyalari, metall yetkazib berish va o‘zaro hisob-kitoblar bitta ish maydonida."
+
+#: templates/ledger/base.html:6
+msgid "Перейти к содержимому"
+msgstr "Mazmunga o‘tish"
+
+#: templates/ledger/base.html:7
+msgid "Закрыть меню"
+msgstr "Menyuni yopish"
+
+#: templates/ledger/base.html:10
+msgid "Учёт металла"
+msgstr "Metall hisobi"
+
+#: templates/ledger/base.html:10 templates/ledger/base.html:27
+msgid "Рабочее пространство"
+msgstr "Ish maydoni"
+
+#: templates/ledger/base.html:11
+msgid "УПРАВЛЕНИЕ"
+msgstr "BOSHQARUV"
+
+#: templates/ledger/base.html:12
+msgid "Основная навигация"
+msgstr "Asosiy menyu"
+
+#: templates/ledger/base.html:17
+msgid "РАБОТА С EXCEL"
+msgstr "EXCEL BILAN ISHLASH"
+
+#: templates/ledger/base.html:23
+msgid "ПОСЛЕДНИЙ СНИМОК"
+msgstr "OXIRGI HISOB NUSXASI"
+
+#: templates/ledger/base.html:23 templates/ledger/deliveries.html:5
+#: templates/ledger/operation_rows.html:3
+msgid "Без даты"
+msgstr "Sanasiz"
+
+#: templates/ledger/base.html:23
+msgid "листов в учёте"
+msgstr "ta varaq hisobda"
+
+#: templates/ledger/base.html:23
+msgid "Начните с Excel"
+msgstr "Exceldan boshlang"
+
+#: templates/ledger/base.html:23
+msgid "Загрузить первую книгу →"
+msgstr "Birinchi kitobni yuklash →"
+
+#: templates/ledger/base.html:24
+msgid "Помощь и инструкции"
+msgstr "Yordam va qo‘llanma"
+
+#: templates/ledger/base.html:25
+msgid "Моё пространство"
+msgstr "Mening ish maydonim"
+
+#: templates/ledger/base.html:25
+msgid "Локальный доступ"
+msgstr "Mahalliy kirish"
+
+#: templates/ledger/base.html:25
+msgid "Авторизованный доступ"
+msgstr "Hisob orqali kirish"
+
+#: templates/ledger/base.html:25
+msgid "Выйти"
+msgstr "Chiqish"
+
+#: templates/ledger/base.html:27
+msgid "Открыть меню"
+msgstr "Menyuni ochish"
+
+#: templates/ledger/base.html:28 templates/ledger/operations.html:4
+msgid "Поиск операций"
+msgstr "Operatsiyalarni qidirish"
+
+#: templates/ledger/base.html:28
+msgid "Найти операцию…"
+msgstr "Operatsiyani qidirish…"
+
+#: templates/ledger/base.html:30
+msgid "Закрыть сообщение"
+msgstr "Xabarni yopish"
+
+#: templates/ledger/base.html:32
+msgid "Учёт в деталях"
+msgstr "Batafsil hisob"
+
+#: templates/ledger/base.html:32
+msgid "Суммы в UZS · Вес в кг и тоннах"
+msgstr "Summalar UZSda · Vazn kg va tonnada"
+
+#: templates/ledger/dashboard.html:2
+msgid "ВАШ БИЗНЕС В ЦИФРАХ"
+msgstr "BIZNESINGIZ RAQAMLARDA"
+
+#: templates/ledger/dashboard.html:2
+msgid "Деньги, металл и взаиморасчёты — в одном месте."
+msgstr "Pul, metall va o‘zaro hisob-kitoblar bir joyda."
+
+#: templates/ledger/dashboard.html:2
+msgid "Экспорт"
+msgstr "Eksport"
+
+#: templates/ledger/dashboard.html:3
+msgid "Общая сводка"
+msgstr "Umumiy ko‘rsatkichlar"
+
+#: templates/ledger/dashboard.html:3
+msgid "Показать"
+msgstr "Ko‘rsatish"
+
+#: templates/ledger/dashboard.html:3 templates/ledger/partners.html:5
+#: templates/ledger/sheet_detail.html:2
+msgid "Сбросить"
+msgstr "Tozalash"
+
+#: templates/ledger/dashboard.html:6 templates/ledger/operations.html:3
+msgid "Сальдо журнала"
+msgstr "Jurnal saldosi"
+
+#: templates/ledger/dashboard.html:6
+msgid "Приход минус расход"
+msgstr "Kirimdan chiqim ayirmasi"
+
+#: templates/ledger/dashboard.html:7
+msgid "Все поступления за период"
+msgstr "Davrdagi barcha tushumlar"
+
+#: templates/ledger/dashboard.html:8
+msgid "Включая начальный долг"
+msgstr "Boshlang‘ich qarz bilan birga"
+
+#: templates/ledger/dashboard.html:9
+msgid "Отгружено металла"
+msgstr "Jo‘natilgan metall"
+
+#: templates/ledger/dashboard.html:9 templates/ledger/deliveries.html:3
+msgid "т"
+msgstr "t"
+
+#: templates/ledger/dashboard.html:9
+msgid "поставок · после скидки"
+msgstr "ta jo‘natma · chegirmadan keyin"
+
+#: templates/ledger/dashboard.html:11
+msgid "Движение денежных средств"
+msgstr "Pul mablag‘lari harakati"
+
+#: templates/ledger/dashboard.html:11
+msgid "Приход и расход по месяцам"
+msgstr "Oylar bo‘yicha kirim va chiqim"
+
+#: templates/ledger/dashboard.html:11
+msgid "млн UZS"
+msgstr "mln UZS"
+
+#: templates/ledger/dashboard.html:11
+msgid "Выбранный период"
+msgstr "Tanlangan davr"
+
+#: templates/ledger/dashboard.html:11
+msgid "Весь период"
+msgstr "Barcha davr"
+
+#: templates/ledger/dashboard.html:11
+msgid "График прихода и расхода по месяцам"
+msgstr "Oylar bo‘yicha kirim va chiqim grafigi"
+
+#: templates/ledger/dashboard.html:11
+msgid "операций без даты включены в итог, но не в график."
+msgstr "ta sanasiz operatsiya natijaga kiritilgan, lekin grafikda ko‘rsatilmagan."
+
+#: templates/ledger/dashboard.html:12
+msgid "Структура расходов"
+msgstr "Chiqimlar tarkibi"
+
+#: templates/ledger/dashboard.html:12
+msgid "Распределение по назначению"
+msgstr "Maqsad bo‘yicha taqsimot"
+
+#: templates/ledger/dashboard.html:12
+msgid "Доли категорий расходов"
+msgstr "Chiqim toifalarining ulushi"
+
+#: templates/ledger/dashboard.html:12
+msgid "Всего расходов"
+msgstr "Jami chiqim"
+
+#: templates/ledger/dashboard.html:12
+msgid "Расходы появятся после импорта."
+msgstr "Chiqimlar importdan keyin ko‘rinadi."
+
+#: templates/ledger/dashboard.html:13
+msgid "Последние операции"
+msgstr "Oxirgi operatsiyalar"
+
+#: templates/ledger/dashboard.html:13 templates/ledger/operations.html:4
+msgid "Все операции"
+msgstr "Barcha operatsiyalar"
+
+#: templates/ledger/dashboard.html:13 templates/ledger/operations.html:4
+msgid "Операция"
+msgstr "Operatsiya"
+
+#: templates/ledger/dashboard.html:14
+msgid "Ваш Excel уже знает этот формат"
+msgstr "Ishchi Excel faylingizni yuklang"
+
+#: templates/ledger/dashboard.html:14
+msgid "Загрузите рабочую книгу — проверим листы, суммы и поставки."
+msgstr "Ishchi kitobni yuklang — varaqlar, summalar va yetkazib berishlarni tekshiramiz."
+
+#: templates/ledger/dashboard.html:14
+msgid "Последние действия"
+msgstr "Oxirgi amallar"
+
+#: templates/ledger/dashboard.html:14
+msgid "Здесь появится история вашей работы."
+msgstr "Ishlaringiz tarixi shu yerda ko‘rinadi."
+
+#: templates/ledger/date_filters.html:1
+msgid "С"
+msgstr "Dan"
+
+#: templates/ledger/date_filters.html:1
+msgid "Начало периода"
+msgstr "Davr boshlanishi"
+
+#: templates/ledger/date_filters.html:1
+msgid "По"
+msgstr "Gacha"
+
+#: templates/ledger/date_filters.html:1
+msgid "Конец периода"
+msgstr "Davr oxiri"
+
+#: templates/ledger/deliveries.html:2
+msgid "ВЕС · СКИДКА · СТОИМОСТЬ"
+msgstr "VAZN · CHEGIRMA · QIYMAT"
+
+#: templates/ledger/deliveries.html:2
+msgid "Каждая машина и точный расчёт стоимости металла."
+msgstr "Har bir mashina va metall qiymatining aniq hisobi."
+
+#: templates/ledger/deliveries.html:2 templates/ledger/operations.html:2
+msgid "В Excel"
+msgstr "Excelga"
+
+#: templates/ledger/deliveries.html:3
+msgid "Отгружено после скидки"
+msgstr "Chegirmadan keyin jo‘natilgan"
+
+#: templates/ledger/deliveries.html:3
+msgid "Принято после скидки"
+msgstr "Chegirmadan keyin qabul qilingan"
+
+#: templates/ledger/deliveries.html:3
+msgid "Поставок в выборке"
+msgstr "Tanlovdagi yetkazib berishlar"
+
+#: templates/ledger/deliveries.html:3 templates/ledger/pagination.html:1
+msgid "записей"
+msgstr "ta yozuv"
+
+#: templates/ledger/deliveries.html:4
+msgid "Номер машины, контрагент…"
+msgstr "Mashina raqami, hamkor…"
+
+#: templates/ledger/deliveries.html:4
+msgid "Поиск поставок"
+msgstr "Yetkazib berishlarni qidirish"
+
+#: templates/ledger/deliveries.html:4
+msgid "Все направления"
+msgstr "Barcha yo‘nalishlar"
+
+#: templates/ledger/deliveries.html:4 templates/ledger/operations.html:4
+#: templates/ledger/partners.html:5 templates/ledger/sheet_detail.html:2
+msgid "Найти"
+msgstr "Qidirish"
+
+#: templates/ledger/deliveries.html:4 templates/ledger/operations.html:4
+msgid "Сбросить фильтры"
+msgstr "Filtrlarni tozalash"
+
+#: templates/ledger/deliveries.html:5
+msgid "Машина / контрагент"
+msgstr "Mashina / hamkor"
+
+#: templates/ledger/deliveries.html:5 templates/ledger/record_detail.html:2
+msgid "Скидка"
+msgstr "Chegirma"
+
+#: templates/ledger/deliveries.html:5
+msgid "Чистый, кг"
+msgstr "Sof vazn, kg"
+
+#: templates/ledger/deliveries.html:5
+msgid "Стоимость, UZS"
+msgstr "Qiymat, UZS"
+
+#: templates/ledger/deliveries.html:5
+msgid "Поставок не найдено"
+msgstr "Yetkazib berishlar topilmadi"
+
+#: templates/ledger/deliveries.html:5
+msgid "Измените фильтры или добавьте первую поставку."
+msgstr "Filtrlarni o‘zgartiring yoki birinchi yetkazib berishni qo‘shing."
+
+#: templates/ledger/deliveries.html:5
+msgid "Добавить поставку"
+msgstr "Yetkazib berish qo‘shish"
+
+#: templates/ledger/deliveries.html:5
+msgid "Чистый вес = (брутто − тара) × (1 − скидка / 100). Стоимость = чистый вес × цена за кг."
+msgstr "Sof vazn = (brutto − tara) × (1 − chegirma / 100). Qiymat = sof vazn × kg narxi."
+
+#: templates/ledger/exports.html:2
+msgid "ИЗ УЧЁТА — В ГОТОВЫЙ ОТЧЁТ"
+msgstr "HISOBDAN TAYYOR HISOBOTGA"
+
+#: templates/ledger/exports.html:2
+msgid "Актуальные данные в аккуратных Excel-таблицах."
+msgstr "Joriy ma’lumotlarni tartibli Excel jadvallarida yuklab oling."
+
+#: templates/ledger/exports.html:3
+msgid "Период выгрузки"
+msgstr "Eksport davri"
+
+#: templates/ledger/exports.html:3
+msgid "Оставьте даты пустыми, чтобы выгрузить все записи."
+msgstr "Barcha yozuvlarni yuklab olish uchun sanalarni bo‘sh qoldiring."
+
+#: templates/ledger/exports.html:4
+msgid "ПОЛНЫЙ ОБЗОР"
+msgstr "TO‘LIQ KO‘RINISH"
+
+#: templates/ledger/exports.html:4
+msgid "Сводный отчёт"
+msgstr "Umumiy hisobot"
+
+#: templates/ledger/exports.html:4
+msgid "Операции, поставки, взаиморасчёты и замечания к исходным данным в одной книге."
+msgstr "Operatsiyalar, yetkazib berishlar, o‘zaro hisob-kitoblar va asl ma’lumotlarga eslatmalar bitta kitobda."
+
+#: templates/ledger/exports.html:4
+msgid "4 листа"
+msgstr "4 ta varaq"
+
+#: templates/ledger/exports.html:4
+msgid "Текущие данные"
+msgstr "Joriy ma’lumotlar"
+
+#: templates/ledger/exports.html:4
+msgid "Скачать отчёт"
+msgstr "Hisobotni yuklab olish"
+
+#: templates/ledger/exports.html:5
+msgid "Дата, тип платежа, сумма, назначение, категория и контрагент."
+msgstr "Sana, to‘lov turi, summa, maqsad, toifa va hamkor."
+
+#: templates/ledger/exports.html:5
+msgid "записей до фильтра"
+msgstr "ta yozuv, filtrgacha"
+
+#: templates/ledger/exports.html:5
+msgid "Скачать операции"
+msgstr "Operatsiyalarni yuklab olish"
+
+#: templates/ledger/exports.html:6
+msgid "Машины и контрагенты, вес до и после скидки, цена и стоимость."
+msgstr "Mashinalar va hamkorlar, chegirmadan oldingi va keyingi vazn, narx va qiymat."
+
+#: templates/ledger/exports.html:6
+msgid "поставок до фильтра"
+msgstr "ta yetkazib berish, filtrgacha"
+
+#: templates/ledger/exports.html:6
+msgid "Скачать поставки"
+msgstr "Yetkazib berishlarni yuklab olish"
+
+#: templates/ledger/exports.html:7
+msgid "Дебет, кредит и сальдо по каждому партнёру из последнего снимка."
+msgstr "Oxirgi hisob nusxasidagi har bir hamkor bo‘yicha debet, kredit va saldo."
+
+#: templates/ledger/exports.html:7
+msgid "контрагентов"
+msgstr "ta hamkor"
+
+#: templates/ledger/exports.html:7
+msgid "Без фильтра дат"
+msgstr "Sana filtrisiz"
+
+#: templates/ledger/exports.html:7
+msgid "Скачать расчёты"
+msgstr "Hisob-kitoblarni yuklab olish"
+
+#: templates/ledger/exports.html:8
+msgid "Экспорт содержит рассчитанные значения на момент выгрузки. Файлы «Операции» и «Поставки» можно импортировать обратно: существующие ID будут пропущены. Сводный отчёт предназначен для просмотра."
+msgstr "Eksportda yuklab olish paytidagi hisoblangan qiymatlar bo‘ladi. «Операции» va «Поставки» fayllarini qayta import qilish mumkin: mavjud ID raqamlari o‘tkazib yuboriladi. Umumiy hisobot ko‘rish uchun mo‘ljallangan."
+
+#: templates/ledger/exports.html:9
+msgid "Оригиналы рабочих книг"
+msgstr "Ishchi kitoblarning asl nusxalari"
+
+#: templates/ledger/exports.html:9
+msgid "Файлы в том виде, в котором вы их загрузили. Новые записи приложения сюда не добавляются."
+msgstr "Fayllar siz yuklagan holatda saqlanadi. Ilovadagi yangi yozuvlar ularga qo‘shilmaydi."
+
+#: templates/ledger/exports.html:9
+msgid "листов"
+msgstr "ta varaq"
+
+#: templates/ledger/exports.html:9
+msgid "Оригинал"
+msgstr "Asl fayl"
+
+#: templates/ledger/exports.html:9
+msgid "После первого импорта здесь появятся оригиналы книг."
+msgstr "Birinchi importdan keyin kitoblarning asl nusxalari shu yerda ko‘rinadi."
+
+#: templates/ledger/help.html:1
+msgid "ПОНЯТНЫЙ УЧЁТ"
+msgstr "TUSHUNARLI HISOB"
+
+#: templates/ledger/help.html:1
+msgid "От вашей рабочей книги до готового отчёта."
+msgstr "Ishchi kitobingizdan tayyor hisobotgacha."
+
+#: templates/ledger/help.html:1
+msgid "Загрузите рабочую книгу"
+msgstr "Ishchi kitobni yuklang"
+
+#: templates/ledger/help.html:1
+msgid "На странице импорта выберите файл формата «01.09.2026.xlsx». Приложение распознаёт 13 листов образца и повторяющиеся блоки контрагентов в «дафтарча»."
+msgstr "Import sahifasida «01.09.2026.xlsx» shaklidagi faylni tanlang. Ilova namunadagi 13 ta varaqni va «дафтарча» varag‘idagi takrorlanuvchi hamkor bloklarini taniydi."
+
+#: templates/ledger/help.html:1
+msgid "Денежные операции берутся только из «Приход-Расход». Отгрузки — из «тура ака», приёмка — из «дафтарча» и «Чугун». Остальные листы доступны в исходных данных."
+msgstr "Pul operatsiyalari faqat «Приход-Расход» varag‘idan olinadi. Jo‘natmalar «тура ака», qabul qilish esa «дафтарча» va «Чугун» varaqlaridan olinadi. Boshqa varaqlarni asl ma’lumotlarda ko‘rish mumkin."
+
+#: templates/ledger/help.html:1
+msgid "Перейти к импорту →"
+msgstr "Importga o‘tish →"
+
+#: templates/ledger/help.html:1
+msgid "Проверьте замечания"
+msgstr "Eslatmalarni tekshiring"
+
+#: templates/ledger/help.html:1
+msgid "Сломанные формулы, отсутствующие даты и неподходящие значения отмечаются в проверке. Даты наследуются только внутри своей колонки и блока. Если дату определить нельзя, запись остаётся без даты."
+msgstr "Xato formulalar, sanasi yo‘q yozuvlar va noto‘g‘ri qiymatlar tekshiruvda belgilanadi. Sanalar faqat o‘z ustuni va bloki ichida davom ettiriladi. Sana aniqlanmasa, yozuv sanasiz qoladi."
+
+#: templates/ledger/help.html:1
+msgid "Нетто в колонках некоторых исходных листов фактически означает тару: приложение использует смысл исходной формулы «брутто − второй вес»."
+msgstr "Ayrim asl varaqlarda «Нетто» ustuni amalda tara vaznini bildiradi: ilova «brutto − ikkinchi vazn» formulasining ma’nosidan foydalanadi."
+
+#: templates/ledger/help.html:1
+msgid "Обновляйте учёт"
+msgstr "Hisobni yangilang"
+
+#: templates/ledger/help.html:1
+msgid "Полная книга заменяет предыдущий снимок. Оригинал и его строки сохраняются в архиве. Шаблоны операций и поставок добавляют новые записи, а совпадающие ID пропускают."
+msgstr "To‘liq kitob oldingi hisob nusxasini almashtiradi. Asl fayl va uning qatorlari arxivda saqlanadi. Operatsiya va yetkazib berish shablonlari yangi yozuvlarni qo‘shadi, bir xil ID raqamlarini esa o‘tkazib yuboradi."
+
+#: templates/ledger/help.html:1
+msgid "Новые записи можно добавить вручную. Если их позже включили в полную книгу, удалите ручную копию. Сводка взаиморасчётов обновляется только из «Кунлик»."
+msgstr "Yangi yozuvlarni qo‘lda qo‘shish mumkin. Keyin ularni to‘liq kitobga kiritsangiz, qo‘lda kiritilgan nusxani o‘chiring. O‘zaro hisob-kitoblar faqat «Кунлик» varag‘idan yangilanadi."
+
+#: templates/ledger/help.html:1
+msgid "Выгружайте отчёты"
+msgstr "Hisobotlarni yuklab oling"
+
+#: templates/ledger/help.html:1
+msgid "Выберите период и скачайте отдельный журнал или сводный отчёт. Операции без дат входят в полный отчёт, но исключаются при фильтре по датам."
+msgstr "Davrni tanlab, alohida jurnal yoki umumiy hisobotni yuklab oling. Sanasiz operatsiyalar to‘liq hisobotga kiradi, lekin sana filtri qo‘llanganda chiqarib tashlanadi."
+
+#: templates/ledger/help.html:1
+msgid "Сальдо денежного журнала — разница прихода и расхода, включая начальный долг. Это не прибыль и не остаток наличных. Вес хранится в кг; на сводке он показан в тоннах."
+msgstr "Pul jurnali saldosi — boshlang‘ich qarz bilan birga kirim va chiqim o‘rtasidagi farq. Bu foyda yoki naqd pul qoldig‘i emas. Vazn kilogrammda saqlanadi, umumiy ko‘rsatkichlarda tonnada beriladi."
+
+#: templates/ledger/help.html:1
+msgid "Перейти к экспорту →"
+msgstr "Eksportga o‘tish →"
+
+#: templates/ledger/import_detail.html:2
+msgid "← История импорта"
+msgstr "← Import tarixi"
+
+#: templates/ledger/import_detail.html:2
+msgid "ПРОВЕРКА И СОХРАНЕНИЕ"
+msgstr "TEKSHIRISH VA SAQLASH"
+
+#: templates/ledger/import_detail.html:2 templates/ledger/imports.html:7
+msgid "Полная рабочая книга"
+msgstr "To‘liq ishchi kitob"
+
+#: templates/ledger/import_detail.html:2
+msgid "Шаблон денежных операций"
+msgstr "Pul operatsiyalari shabloni"
+
+#: templates/ledger/import_detail.html:2
+msgid "Шаблон поставок"
+msgstr "Yetkazib berish shabloni"
+
+#: templates/ledger/import_detail.html:2
+msgid "Скачать оригинал"
+msgstr "Asl faylni yuklab olish"
+
+#: templates/ledger/import_detail.html:3
+msgid "Листов распознано"
+msgstr "Aniqlangan varaqlar"
+
+#: templates/ledger/import_detail.html:3
+msgid "Денежных операций"
+msgstr "Pul operatsiyalari"
+
+#: templates/ledger/import_detail.html:3
+msgid "Поставок металла"
+msgstr "Metall yetkazib berishlar"
+
+#: templates/ledger/import_detail.html:3
+msgid "Взаиморасчётов"
+msgstr "Hisob-kitoblar"
+
+#: templates/ledger/import_detail.html:4
+msgid "В файле есть ошибки"
+msgstr "Faylda xatolar bor"
+
+#: templates/ledger/import_detail.html:4
+msgid "Файл готов к импорту"
+msgstr "Fayl importga tayyor"
+
+#: templates/ledger/import_detail.html:4
+msgid "Исправьте отмеченные строки и загрузите файл заново. Данные ещё не добавлены."
+msgstr "Belgilangan qatorlarni tuzating va faylni qayta yuklang. Ma’lumotlar hali qo‘shilmagan."
+
+#: templates/ledger/import_detail.html:4
+msgid "Подтверждение заменит снимок «"
+msgstr "Tasdiqlanganda «"
+
+#: templates/ledger/import_detail.html:4
+msgid "». Его оригинал останется в архиве. Ручные записи и отдельные шаблоны сохранятся."
+msgstr "» hisob nusxasi almashtiriladi. Asl fayl arxivda qoladi. Qo‘lda kiritilgan yozuvlar va alohida shablonlar saqlanadi."
+
+#: templates/ledger/import_detail.html:4
+msgid "Проверьте замечания и подтвердите загрузку данных в учёт."
+msgstr "Eslatmalarni tekshiring va ma’lumotlarni hisobga yuklashni tasdiqlang."
+
+#: templates/ledger/import_detail.html:4
+msgid "Заменить снимок и импортировать"
+msgstr "Nusxani almashtirib import qilish"
+
+#: templates/ledger/import_detail.html:4
+msgid "Подтвердить импорт"
+msgstr "Importni tasdiqlash"
+
+#: templates/ledger/import_detail.html:4
+msgid "Загрузить исправленный файл"
+msgstr "Tuzatilgan faylni yuklash"
+
+#: templates/ledger/import_detail.html:4
+msgid "Файл импортирован"
+msgstr "Fayl import qilindi:"
+
+#: templates/ledger/import_detail.html:4
+msgid ". Повторная загрузка этого файла не создаст дубликаты."
+msgstr ". Bu fayl qayta yuklansa, takroriy yozuvlar yaratilmaydi."
+
+#: templates/ledger/import_detail.html:4
+msgid "Архивный снимок. Его записи исключены из текущих итогов; оригинал и листы сохранены."
+msgstr "Arxivdagi hisob nusxasi. Uning yozuvlari joriy natijalarga kiritilmaydi; asl fayl va varaqlar saqlangan."
+
+#: templates/ledger/import_detail.html:5
+msgid "Результаты проверки"
+msgstr "Tekshirish natijalari"
+
+#: templates/ledger/import_detail.html:5
+msgid "замечаний ·"
+msgstr "ta eslatma ·"
+
+#: templates/ledger/import_detail.html:5
+msgid "ошибок"
+msgstr "ta xato"
+
+#: templates/ledger/import_detail.html:5
+msgid "Ошибка"
+msgstr "Xato"
+
+#: templates/ledger/import_detail.html:5
+msgid "Проверить"
+msgstr "Tekshirish"
+
+#: templates/ledger/import_detail.html:5
+msgid "К сведению"
+msgstr "Ma’lumot uchun"
+
+#: templates/ledger/import_detail.html:5
+msgid "Замечаний не обнаружено."
+msgstr "Eslatmalar aniqlanmadi."
+
+#: templates/ledger/import_detail.html:6
+msgid "Листы в файле"
+msgstr "Fayldagi varaqlar"
+
+#: templates/ledger/import_detail.html:6
+msgid "Оригинальные названия и ячейки"
+msgstr "Asl nomlar va kataklar"
+
+#: templates/ledger/import_detail.html:6
+msgid "заполненных строк"
+msgstr "ta to‘ldirilgan qator"
+
+#: templates/ledger/imports.html:2
+msgid "EXCEL → ВАШ УЧЁТ"
+msgstr "EXCEL → HISOBINGIZ"
+
+#: templates/ledger/imports.html:2
+msgid "Одна загрузка вместо переноса сотен строк вручную."
+msgstr "Yuzlab qatorlarni qo‘lda ko‘chirish o‘rniga faylni yuklang."
+
+#: templates/ledger/imports.html:2
+msgid "Исходные файлы"
+msgstr "Asl fayllar"
+
+#: templates/ledger/imports.html:3
+msgid "Загрузка файла"
+msgstr "Faylni yuklash"
+
+#: templates/ledger/imports.html:3
+msgid "Проверка данных"
+msgstr "Ma’lumotlarni tekshirish"
+
+#: templates/ledger/imports.html:3
+msgid "Импорт в учёт"
+msgstr "Hisobga import qilish"
+
+#: templates/ledger/imports.html:4
+msgid "Загрузите Excel-файл"
+msgstr "Excel faylini yuklang"
+
+#: templates/ledger/imports.html:4
+msgid "Формат книги определится автоматически"
+msgstr "Kitob formati avtomatik aniqlanadi"
+
+#: templates/ledger/imports.html:5
+msgid "или"
+msgstr "yoki"
+
+#: templates/ledger/imports.html:5
+msgid "выберите на компьютере"
+msgstr "kompyuterdan tanlang"
+
+#: templates/ledger/imports.html:5
+msgid "XLSX · до 10 МБ · без пароля"
+msgstr "XLSX · 10 MB gacha · parolsiz"
+
+#: templates/ledger/imports.html:6
+msgid "необязательно"
+msgstr "ixtiyoriy"
+
+#: templates/ledger/imports.html:6
+msgid "Сначала проверка, затем сохранение"
+msgstr "Avval tekshirish, keyin saqlash"
+
+#: templates/ledger/imports.html:6
+msgid "Проверить файл"
+msgstr "Faylni tekshirish"
+
+#: templates/ledger/imports.html:7
+msgid "Что можно импортировать"
+msgstr "Nimalarni import qilish mumkin"
+
+#: templates/ledger/imports.html:7
+msgid "Файл как «01.09.2026.xlsx». Новый снимок заменит прошлый импорт этой книги. Ручные записи сохранятся."
+msgstr "«01.09.2026.xlsx» kabi fayl. Yangi nusxa shu kitobning oldingi importini almashtiradi. Qo‘lda kiritilgan yozuvlar saqlanadi."
+
+#: templates/ledger/imports.html:7
+msgid "Отдельные операции"
+msgstr "Alohida operatsiyalar"
+
+#: templates/ledger/imports.html:7
+msgid "Приход, расход, дата и назначение. Добавляются в текущий учёт."
+msgstr "Kirim, chiqim, sana va maqsad. Joriy hisobga qo‘shiladi."
+
+#: templates/ledger/imports.html:7
+msgid "Скачать шаблон"
+msgstr "Shablonni yuklab olish"
+
+#: templates/ledger/imports.html:7
+msgid "Вес, скидка, цена и контрагент. Стоимость рассчитается автоматически."
+msgstr "Vazn, chegirma, narx va hamkor. Qiymat avtomatik hisoblanadi."
+
+#: templates/ledger/imports.html:7
+msgid "Перед загрузкой сохраните книгу в Excel с пересчитанными формулами. Оригинал останется доступен в истории."
+msgstr "Yuklashdan oldin Excelda formulalarni qayta hisoblab, kitobni saqlang. Asl nusxa tarixda qoladi."
+
+#: templates/ledger/imports.html:8
+msgid "История импорта"
+msgstr "Import tarixi"
+
+#: templates/ledger/imports.html:8
+msgid "Последние 15 файлов"
+msgstr "Oxirgi 15 ta fayl"
+
+#: templates/ledger/imports.html:8
+msgid "Файл"
+msgstr "Fayl"
+
+#: templates/ledger/imports.html:8
+msgid "Загружен"
+msgstr "Yuklangan vaqt"
+
+#: templates/ledger/imports.html:8
+msgid "Данные"
+msgstr "Ma’lumotlar"
+
+#: templates/ledger/imports.html:8
+msgid "Статус"
+msgstr "Holat"
+
+#: templates/ledger/imports.html:8
+msgid "листов ·"
+msgstr "ta varaq ·"
+
+#: templates/ledger/imports.html:8
+msgid "операций"
+msgstr "ta operatsiya"
+
+#: templates/ledger/imports.html:8
+msgid "поставок"
+msgstr "ta yetkazib berish"
+
+#: templates/ledger/imports.html:8
+msgid "Открыть →"
+msgstr "Ochish →"
+
+#: templates/ledger/imports.html:8
+msgid "Первый файл — начало порядка"
+msgstr "Birinchi faylni yuklang"
+
+#: templates/ledger/imports.html:8
+msgid "Загрузите книгу, и история появится здесь."
+msgstr "Kitobni yuklang — tarix shu yerda ko‘rinadi."
+
+#: templates/ledger/language_switcher.html:2
+msgid "Язык интерфейса"
+msgstr "Interfeys tili"
+
+#: templates/ledger/operation_rows.html:2
+msgid "· строка"
+msgstr "· qator"
+
+#: templates/ledger/operation_rows.html:2 templates/ledger/record_form.html:1
+msgid "Ручная запись"
+msgstr "Qo‘lda kiritilgan yozuv"
+
+#: templates/ledger/operation_rows.html:5
+msgid "сторно"
+msgstr "storno"
+
+#: templates/ledger/operation_rows.html:6
+msgid "Открыть"
+msgstr "Ochish"
+
+#: templates/ledger/operation_rows.html:6
+msgid "Операций пока нет"
+msgstr "Hali operatsiyalar yo‘q"
+
+#: templates/ledger/operation_rows.html:6
+msgid "Измените фильтры, добавьте операцию или загрузите Excel."
+msgstr "Filtrlarni o‘zgartiring, operatsiya qo‘shing yoki Excel yuklang."
+
+#: templates/ledger/operation_rows.html:6
+msgid "Импортировать Excel"
+msgstr "Exceldan import qilish"
+
+#: templates/ledger/operations.html:2 templates/ledger/record_form.html:1
+msgid "ДЕНЕЖНЫЙ ЖУРНАЛ"
+msgstr "PUL JURNALI"
+
+#: templates/ledger/operations.html:2
+msgid "Поступления и расходы с привязкой к исходным данным."
+msgstr "Asl ma’lumotlar bilan bog‘langan kirim va chiqimlar."
+
+#: templates/ledger/operations.html:2
+msgid "Добавить операцию"
+msgstr "Operatsiya qo‘shish"
+
+#: templates/ledger/operations.html:4
+msgid "Назначение, контрагент…"
+msgstr "Maqsad, hamkor…"
+
+#: templates/ledger/operations.html:4
+msgid "Все категории"
+msgstr "Barcha toifalar"
+
+#: templates/ledger/pagination.html:1
+msgid "из"
+msgstr "/"
+
+#: templates/ledger/pagination.html:1
+msgid "Предыдущая страница"
+msgstr "Oldingi sahifa"
+
+#: templates/ledger/pagination.html:1
+msgid "Следующая страница"
+msgstr "Keyingi sahifa"
+
+#: templates/ledger/partners.html:2
+msgid "РАСЧЁТЫ С ПАРТНЁРАМИ"
+msgstr "HAMKORLAR BILAN HISOB-KITOBLAR"
+
+#: templates/ledger/partners.html:2
+msgid "Снимок из листа «Кунлик»"
+msgstr "«Кунлик» varag‘idagi hisob nusxasi"
+
+#: templates/ledger/partners.html:2
+msgid "на"
+msgstr "sana:"
+
+#: templates/ledger/partners.html:2
+msgid "Экспорт всех расчётов"
+msgstr "Barcha hisob-kitoblar eksporti"
+
+#: templates/ledger/partners.html:3
+msgid "Нам должны · положительное сальдо"
+msgstr "Bizga qarzdorlar · musbat saldo"
+
+#: templates/ledger/partners.html:3
+msgid "Мы должны · отрицательное сальдо"
+msgstr "Biz qarzdormiz · manfiy saldo"
+
+#: templates/ledger/partners.html:3
+msgid "Общее сальдо"
+msgstr "Umumiy saldo"
+
+#: templates/ledger/partners.html:4
+msgid "Сальдо рассчитано как колонка D минус E с сохранением исходных знаков. Новые денежные операции не изменяют этот снимок; для обновления загрузите рабочую книгу."
+msgstr "Saldo asl ishoralar saqlangan holda D ustunidan E ustunini ayirish orqali hisoblangan. Yangi pul operatsiyalari bu nusxani o‘zgartirmaydi; yangilash uchun ishchi kitobni yuklang."
+
+#: templates/ledger/partners.html:5
+msgid "Найти контрагента…"
+msgstr "Hamkorni qidirish…"
+
+#: templates/ledger/partners.html:5
+msgid "Сторона долга"
+msgstr "Qarz tomoni"
+
+#: templates/ledger/partners.html:5
+msgid "Все расчёты"
+msgstr "Barcha hisob-kitoblar"
+
+#: templates/ledger/partners.html:5 templates/ledger/partners.html:6
+msgid "Нам должны"
+msgstr "Bizga qarzdorlar"
+
+#: templates/ledger/partners.html:5 templates/ledger/partners.html:6
+msgid "Мы должны"
+msgstr "Biz qarzdormiz"
+
+#: templates/ledger/partners.html:6
+msgid "Примечание из Excel"
+msgstr "Exceldagi izoh"
+
+#: templates/ledger/partners.html:6
+msgid "Состояние расчётов"
+msgstr "Hisob-kitob holati"
+
+#: templates/ledger/partners.html:6
+msgid "Сальдо, UZS"
+msgstr "Saldo, UZS"
+
+#: templates/ledger/partners.html:6
+msgid "Источник"
+msgstr "Manba"
+
+#: templates/ledger/partners.html:6
+msgid "Расчёт закрыт"
+msgstr "Hisob-kitob yopilgan"
+
+#: templates/ledger/partners.html:6
+msgid "Кунлик ·"
+msgstr "Кунлик ·"
+
+#: templates/ledger/partners.html:6
+msgid "Нет расчётов по этому запросу"
+msgstr "Bu so‘rov bo‘yicha hisob-kitoblar yo‘q"
+
+#: templates/ledger/partners.html:6
+msgid "Загрузите рабочую книгу или измените фильтр."
+msgstr "Ishchi kitobni yuklang yoki filtrni o‘zgartiring."
+
+#: templates/ledger/record_detail.html:1 templates/ledger/record_form.html:1
+msgid "← Вернуться к списку"
+msgstr "← Ro‘yxatga qaytish"
+
+#: templates/ledger/record_detail.html:1
+msgid "ИМПОРТИРОВАНО ИЗ EXCEL"
+msgstr "EXCELDAN IMPORT QILINGAN"
+
+#: templates/ledger/record_detail.html:1
+msgid "РУЧНАЯ ЗАПИСЬ"
+msgstr "QO‘LDA KIRITILGAN YOZUV"
+
+#: templates/ledger/record_detail.html:1
+msgid "Дата не указана"
+msgstr "Sana ko‘rsatilmagan"
+
+#: templates/ledger/record_detail.html:1
+msgid "Редактировать"
+msgstr "Tahrirlash"
+
+#: templates/ledger/record_detail.html:2
+msgid "Сумма операции"
+msgstr "Operatsiya summasi"
+
+#: templates/ledger/record_detail.html:2
+msgid "Стоимость металла"
+msgstr "Metall qiymati"
+
+#: templates/ledger/record_detail.html:2
+msgid "Не указан"
+msgstr "Ko‘rsatilmagan"
+
+#: templates/ledger/record_detail.html:2 templates/ledger/record_form.html:1
+msgid "Нетто"
+msgstr "Netto"
+
+#: templates/ledger/record_detail.html:2
+msgid "Чистый вес"
+msgstr "Sof vazn"
+
+#: templates/ledger/record_detail.html:2
+msgid "UZS / кг"
+msgstr "UZS / kg"
+
+#: templates/ledger/record_detail.html:2
+msgid "ID записи"
+msgstr "Yozuv ID raqami"
+
+#: templates/ledger/record_detail.html:2
+msgid "Удалить запись"
+msgstr "Yozuvni o‘chirish"
+
+#: templates/ledger/record_detail.html:2
+msgid "Запись будет исключена из журнала и итогов. Действие сохранится в истории."
+msgstr "Yozuv jurnal va natijalardan chiqariladi. Amal tarixda saqlanadi."
+
+#: templates/ledger/record_detail.html:2
+msgid "Подтвердить удаление"
+msgstr "O‘chirishni tasdiqlash"
+
+#: templates/ledger/record_detail.html:2
+msgid "Источник записи"
+msgstr "Yozuv manbasi"
+
+#: templates/ledger/record_detail.html:2
+msgid "Лист"
+msgstr "Varaq"
+
+#: templates/ledger/record_detail.html:2
+msgid "Строка"
+msgstr "Qator"
+
+#: templates/ledger/record_detail.html:2
+msgid "Открыть исходную строку →"
+msgstr "Asl qatorni ochish →"
+
+#: templates/ledger/record_detail.html:2
+msgid "Для исправления импортированных данных обновите исходный Excel и загрузите новый снимок."
+msgstr "Import qilingan ma’lumotlarni tuzatish uchun asl Excel faylini yangilang va yangi hisob nusxasini yuklang."
+
+#: templates/ledger/record_detail.html:2
+msgid "Добавлено вручную"
+msgstr "Qo‘lda qo‘shilgan"
+
+#: templates/ledger/record_detail.html:2
+msgid "Эта запись сохраняется при обновлении рабочих книг."
+msgstr "Ishchi kitoblar yangilanganda bu yozuv saqlanadi."
+
+#: templates/ledger/record_form.html:1
+msgid "УЧЁТ МЕТАЛЛА"
+msgstr "METALL HISOBI"
+
+#: templates/ledger/record_form.html:1
+msgid "Запись сразу попадёт в журнал и общую сводку."
+msgstr "Yozuv darhol jurnal va umumiy ko‘rsatkichlarga qo‘shiladi."
+
+#: templates/ledger/record_form.html:1
+msgid "Введите вес и цену — чистый вес и стоимость рассчитаются автоматически."
+msgstr "Vazn va narxni kiriting — sof vazn va qiymat avtomatik hisoblanadi."
+
+#: templates/ledger/record_form.html:1
+msgid "Отмена"
+msgstr "Bekor qilish"
+
+#: templates/ledger/record_form.html:1
+msgid "Сохранить операцию"
+msgstr "Operatsiyani saqlash"
+
+#: templates/ledger/record_form.html:1
+msgid "Сохранить поставку"
+msgstr "Yetkazib berishni saqlash"
+
+#: templates/ledger/record_form.html:1
+msgid "Расчёт поставки"
+msgstr "Yetkazib berish hisobi"
+
+#: templates/ledger/record_form.html:1
+msgid "После скидки"
+msgstr "Chegirmadan keyin"
+
+#: templates/ledger/record_form.html:1
+msgid "Стоимость"
+msgstr "Qiymat"
+
+#: templates/ledger/record_form.html:1
+msgid "Все веса в килограммах."
+msgstr "Barcha vaznlar kilogrammda."
+
+#: templates/ledger/record_form.html:1
+msgid "Цена указывается за 1 кг."
+msgstr "Narx 1 kg uchun ko‘rsatiladi."
+
+#: templates/ledger/record_form.html:1
+msgid "Укажите фактическую дату и назначение платежа, чтобы его было легко найти."
+msgstr "To‘lovni oson topish uchun uning haqiqiy sanasi va maqsadini kiriting."
+
+#: templates/ledger/record_form.html:1
+msgid "Ручные записи сохраняются при обновлении рабочего Excel. Если позже эта же операция появится в полной книге, удалите ручную копию, чтобы избежать повторного учёта."
+msgstr "Ishchi Excel yangilanganda qo‘lda kiritilgan yozuvlar saqlanadi. Keyin shu operatsiya to‘liq kitobda paydo bo‘lsa, takroriy hisob bo‘lmasligi uchun qo‘lda kiritilgan nusxani o‘chiring."
+
+#: templates/ledger/sheet_detail.html:1
+msgid "ИСХОДНЫЙ ЛИСТ"
+msgstr "ASL VARAQ"
+
+#: templates/ledger/sheet_detail.html:1 templates/ledger/sheets.html:2
+msgid "формул"
+msgstr "ta formula"
+
+#: templates/ledger/sheet_detail.html:1
+msgid "Оригинальная книга"
+msgstr "Asl kitob"
+
+#: templates/ledger/sheet_detail.html:2
+msgid "Значения из сохранённого Excel. Нажмите на ячейку с индикатором ƒ, чтобы увидеть формулу. Пустые строки с заготовленными формулами скрыты."
+msgstr "Saqlangan Excel faylidagi qiymatlar. Formulani ko‘rish uchun ƒ belgili katakni bosing. Tayyor formulalari bor bo‘sh qatorlar yashirilgan."
+
+#: templates/ledger/sheet_detail.html:2
+msgid "Поиск по листу"
+msgstr "Varaq bo‘yicha qidirish"
+
+#: templates/ledger/sheet_detail.html:2
+msgid "Поиск по значениям и формулам…"
+msgstr "Qiymat va formulalar bo‘yicha qidirish…"
+
+#: templates/ledger/sheet_detail.html:2
+msgid "Нет результата"
+msgstr "Natija yo‘q"
+
+#: templates/ledger/sheet_detail.html:2
+msgid "Ничего не найдено."
+msgstr "Hech narsa topilmadi."
+
+#: templates/ledger/sheets.html:1
+msgid "ПРОИСХОЖДЕНИЕ ДАННЫХ"
+msgstr "MA’LUMOTLAR MANBASI"
+
+#: templates/ledger/sheets.html:1
+msgid "Все разделы книги, включая заметки, бонусы и вспомогательные расчёты."
+msgstr "Kitobning barcha bo‘limlari: izohlar, bonuslar va qo‘shimcha hisob-kitoblar."
+
+#: templates/ledger/sheets.html:1
+msgid "Загрузить Excel"
+msgstr "Excel yuklash"
+
+#: templates/ledger/sheets.html:2
+msgid "Проверка файла →"
+msgstr "Faylni tekshirish →"
+
+#: templates/ledger/sheets.html:2
+msgid "строк ·"
+msgstr "ta qator ·"
+
+#: templates/ledger/sheets.html:2
+msgid "Исходных листов пока нет"
+msgstr "Hali asl varaqlar yo‘q"
+
+#: templates/ledger/sheets.html:2
+msgid "Начните с импорта рабочей книги."
+msgstr "Ishchi kitobni import qilishdan boshlang."
+
+#: templates/registration/login.html:1
+msgid "Вход · MetalFlow"
+msgstr "Kirish · MetalFlow"
+
+#: templates/registration/login.html:1
+msgid "ВАШЕ РАБОЧЕЕ ПРОСТРАНСТВО"
+msgstr "ISH MAYDONINGIZ"
+
+#: templates/registration/login.html:1
+msgid "Добро пожаловать"
+msgstr "Xush kelibsiz"
+
+#: templates/registration/login.html:1
+msgid "Войдите, чтобы работать с учётом и отчётами."
+msgstr "Hisob va hisobotlar bilan ishlash uchun tizimga kiring."
+
+#: templates/registration/login.html:1
+msgid "Войти в пространство →"
+msgstr "Ish maydoniga kirish →"
