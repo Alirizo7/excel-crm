@@ -55,7 +55,7 @@ def table(workbook, title, headers, rows):
 
 
 @override('ru')
-def make_export(kind, operations=(), deliveries=(), partners=(), issues=(), template=False):
+def make_export(kind, operations=(), deliveries=(), partners=(), issues=(), template=False, payments=()):
     # Exchange sheet names, columns and choice values form one stable contract.
     # Changing the interface language must not break export/reimport.
     workbook = Workbook()
@@ -69,8 +69,13 @@ def make_export(kind, operations=(), deliveries=(), partners=(), issues=(), temp
               [[str(d.uid), d.date, d.get_direction_display(), d.partner, d.vehicle, d.gross, d.tare,
                 d.discount, d.price, d.notes, d.net, d.clean_weight, d.amount] for d in deliveries])
     if kind in ('partners', 'report'):
-        table(workbook, 'Взаиморасчёты', ['Контрагент', 'Дебет исходный UZS', 'Кредит исходный UZS', 'Сальдо UZS', 'Примечание'],
-              [[p.name, p.receivable_column, p.payable_column, p.balance, p.note] for p in partners])
+        table(workbook, 'Взаиморасчёты', ['Контрагент', 'Дебет исходный UZS', 'Кредит исходный UZS', 'Сальдо UZS', 'Примечание',
+              'Полная сумма долга UZS', 'Погашено UZS', 'Остаток UZS', 'Кто должен', 'Срок оплаты', 'ID долга'],
+              [[p.name, p.receivable_column, p.payable_column, p.remaining, p.note, abs(p.balance), p.paid_amount,
+                p.outstanding, 'Нам должны' if p.balance >= 0 else 'Мы должны', p.due_date, str(p.uid)] for p in partners])
+        table(workbook, 'Погашения долгов', ['Дата', 'Контрагент', 'Сумма UZS', 'Направление', 'Примечание', 'Статус', 'Причина отмены', 'ID долга'],
+              [[p.date, p.debt.name, p.amount, 'Получено' if p.debt.balance > 0 else 'Оплачено', p.note,
+                'Отменена' if p.cancelled_at else 'Записана', p.cancel_reason, str(p.debt.uid)] for p in payments])
     if kind == 'report':
         table(workbook, 'Проверка данных', ['Уровень', 'Лист', 'Ячейка', 'Сообщение'],
               [[i['level'], i['sheet'], i['cell'], i['message']] for i in issues])

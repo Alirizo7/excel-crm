@@ -23,6 +23,7 @@ from django.db import transaction
 from django.utils import timezone
 from openpyxl.utils import get_column_letter
 from ledger.models import Activity, Delivery, ImportBatch, Operation, PartnerBalance, SourceSheet
+from ledger.services.changes import workspace_transaction, partner_for
 
 MAX_BYTES = 10 * 1024 * 1024
 ROLES = {'тонн': gettext_noop('Объёмы и остатки'), 'Хитой': gettext_noop('Расчёты и распределение прибыли'),
@@ -372,26 +373,50 @@ def stage_import(data, filename, report_date=None):
     return batch, True
 
 
-@transaction.atomic
-def commit_import(batch_id):
+def import_impact():
+    edited = sum(model.objects.filter(batch__format='legacy', batch__status='imported', modified_at__isnull=False).count()
+                 for model in (Operation, Delivery))
+    balances = PartnerBalance.objects.filter(batch__format='legacy', archived_at=None)
+    return {'record_edits': edited, 'debt_edits': balances.filter(modified_at__isnull=False).count(),
+            'has_debts': balances.exists()}
+
+
+@workspace_transaction()
+def commit_import(batch_id, *, debt_policy=None, replace_local_changes=False):
     batch = ImportBatch.objects.select_for_update().get(pk=batch_id)
     if batch.status != 'preview':
         raise ValidationError(gettext_noop('Этот файл уже обработан. Повторный импорт не выполнен.'))
     if batch.summary.get('errors'):
         raise ValidationError(gettext_noop('Исправьте ошибки в файле и загрузите его заново. Частичный импорт отключён.'))
     if batch.format == 'legacy':
+        impact = import_impact()
+        if debt_policy not in (None, 'keep', 'replace'):
+            raise ValidationError(gettext_noop('Выберите способ обновления долгов.'))
+        if impact['debt_edits'] and debt_policy is None:
+            raise ValidationError(gettext_noop('Есть изменения долгов или погашения. Выберите, сохранить текущие долги или принять остатки из новой книги.'))
+        debt_policy = debt_policy or 'replace'
+        if (impact['record_edits'] or (impact['debt_edits'] and debt_policy == 'replace')) and not replace_local_changes:
+            raise ValidationError(gettext_noop('Подтвердите замену изменений импортированных записей новым снимком.'))
         previous = ImportBatch.objects.filter(format='legacy', status='imported')
-        for model in (Operation, Delivery, PartnerBalance):
-            model.objects.filter(batch__in=previous).update(active=False)
+        for model in (Operation, Delivery):
+            model.objects.filter(batch__in=previous).update(active=False, archived_at=timezone.now())
+        if debt_policy == 'replace':
+            PartnerBalance.objects.filter(batch__format='legacy', archived_at=None).update(active=False, archived_at=timezone.now())
         previous.update(status='superseded')
     for name, model in [('operations', Operation), ('deliveries', Delivery), ('balances', PartnerBalance)]:
+        if name == 'balances' and debt_policy == 'keep':
+            continue
         records = batch.payload.get(name, [])
+        if name == 'balances':
+            records = [dict(record, counterparty=partner_for(record['name'])) for record in records]
         for start in range(0, len(records), 500):
             # Recheck IDs at commit time: another preview may have been confirmed first.
             portion = records[start:start+500]
             existing = set(str(x) for x in model.objects.filter(uid__in=[r['uid'] for r in portion if r.get('uid')]).values_list('uid', flat=True))
             model.objects.bulk_create([model(batch=batch, **record) for record in portion if record.get('uid') not in existing])
     batch.status, batch.imported_at = 'imported', timezone.now()
-    batch.save(update_fields=['status', 'imported_at'])
+    if batch.format == 'legacy':
+        batch.summary = dict(batch.summary, debt_policy=debt_policy)
+    batch.save(update_fields=['status', 'imported_at', 'summary'])
     Activity.objects.create(title=gettext_noop('Excel импортирован'), detail=batch.filename, kind='import')
     return batch

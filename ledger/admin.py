@@ -1,20 +1,31 @@
 from django.contrib import admin
-from .models import Operation, Delivery, ImportBatch, SourceSheet, PartnerBalance, Activity
+from .models import Operation, Delivery, ImportBatch, SourceSheet, PartnerBalance, Activity, DebtPayment, Counterparty, RecordChange
+
+
+class AuditReadOnlyAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Operation)
-class OperationAdmin(admin.ModelAdmin):
+class OperationAdmin(AuditReadOnlyAdmin):
     list_display = ['date', 'description', 'kind', 'amount', 'active']
     list_filter = ['kind', 'active']
     search_fields = ['description', 'partner']
 
 
 @admin.register(Delivery)
-class DeliveryAdmin(admin.ModelAdmin):
+class DeliveryAdmin(AuditReadOnlyAdmin):
     list_display = ['date', 'vehicle', 'partner', 'direction', 'clean_weight', 'amount']
     list_filter = ['direction', 'active']
 
 
-for model in (ImportBatch, SourceSheet, PartnerBalance, Activity):
-    admin.site.register(model)
+for model in (ImportBatch, SourceSheet, PartnerBalance, Activity, DebtPayment, Counterparty, RecordChange):
+    admin.site.register(model, AuditReadOnlyAdmin)
 admin.site.site_header = 'MetalFlow · Администрирование'

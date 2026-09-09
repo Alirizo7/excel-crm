@@ -3,7 +3,9 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from .models import Operation, Delivery
+from .models import Operation, Delivery, PartnerBalance
+from django.utils import timezone
+from decimal import Decimal
 
 
 class WorkspaceLoginForm(AuthenticationForm):
@@ -36,6 +38,7 @@ class DateFilters(forms.Form):
 
 
 class OperationForm(forms.ModelForm):
+    revision = forms.IntegerField(widget=forms.HiddenInput, required=False, initial=0, min_value=0)
     class Meta:
         model = Operation
         fields = ['date', 'kind', 'amount', 'description', 'category', 'partner']
@@ -45,7 +48,8 @@ class OperationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['date'].required = True
+        self.fields['date'].required = not bool(self.instance.batch_id)
+        self.initial['revision'] = self.instance.revision
 
     def clean_amount(self):
         amount = self.cleaned_data['amount']
@@ -55,6 +59,7 @@ class OperationForm(forms.ModelForm):
 
 
 class DeliveryForm(forms.ModelForm):
+    revision = forms.IntegerField(widget=forms.HiddenInput, required=False, initial=0, min_value=0)
     class Meta:
         model = Delivery
         fields = ['date', 'direction', 'partner', 'vehicle', 'gross', 'tare', 'discount', 'price', 'notes']
@@ -63,10 +68,64 @@ class DeliveryForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['date'].required = True
+        self.fields['date'].required = not bool(self.instance.batch_id)
+        self.initial['revision'] = self.instance.revision
 
     def clean(self):
         data = super().clean()
         if data.get('gross') is not None and data.get('tare') is not None and data['gross'] < data['tare']:
             self.add_error('tare', _('Тара не может превышать брутто.'))
         return data
+
+
+class DebtForm(forms.ModelForm):
+    revision = forms.IntegerField(widget=forms.HiddenInput, required=False, initial=0, min_value=0)
+    side = forms.ChoiceField(label=_('Кто должен'), choices=[('receivable', _('Нам должны')), ('payable', _('Мы должны'))])
+    principal = forms.DecimalField(label=_('Полная сумма долга, UZS'), max_digits=20, decimal_places=2, min_value=0,
+                                  help_text=_('Сумма до погашений. Внесённые оплаты вычитаются автоматически.'))
+
+    class Meta:
+        model = PartnerBalance
+        fields = ['name', 'side', 'principal', 'due_date', 'note']
+        labels = {'name': _('Контрагент'), 'note': _('Основание долга / примечание')}
+        widgets = {'due_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+                   'note': forms.Textarea(attrs={'rows': 3})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.initial['revision'] = self.instance.revision
+        if self.instance.pk:
+            self.initial.update(side='receivable' if self.instance.balance >= 0 else 'payable', principal=abs(self.instance.balance))
+
+    def clean(self):
+        data = super().clean()
+        amount = data.get('principal')
+        if amount is not None and amount < self.instance.paid_amount:
+            self.add_error('principal', _('Полная сумма долга не может быть меньше уже погашенной суммы.'))
+        if self.instance.pk and self.instance.paid_amount:
+            # Compare names without creating a counterparty during validation.
+            if data.get('name') != self.instance.name or data.get('side') != ('receivable' if self.instance.balance >= 0 else 'payable'):
+                raise ValidationError(_('У долга с оплатами нельзя менять контрагента и сторону долга.'))
+        return data
+
+
+class PaymentForm(forms.Form):
+    revision = forms.IntegerField(widget=forms.HiddenInput, min_value=0)
+    request_key = forms.UUIDField(widget=forms.HiddenInput)
+    date = forms.DateField(label=_('Дата оплаты'), widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'))
+    amount = forms.DecimalField(label=_('Сумма оплаты, UZS'), max_digits=20, decimal_places=2, min_value=Decimal('.01'))
+    note = forms.CharField(label=_('Примечание'), required=False, max_length=500, widget=forms.Textarea(attrs={'rows': 3}))
+
+    def clean_date(self):
+        date = self.cleaned_data['date']
+        if date > timezone.localdate():
+            raise ValidationError(_('Дата фактической оплаты не может быть в будущем.'))
+        return date
+
+
+class RevisionForm(forms.Form):
+    revision = forms.IntegerField(widget=forms.HiddenInput, min_value=0)
+
+
+class CancelPaymentForm(RevisionForm):
+    reason = forms.CharField(label=_('Причина отмены'), max_length=500, widget=forms.Textarea(attrs={'rows': 3}))

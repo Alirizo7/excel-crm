@@ -147,16 +147,17 @@ class WorkflowTests(TestCase):
     def test_manual_operation_http_lifecycle(self):
         values={'date':'2026-09-01','kind':'income','amount':'100','description':'Ручная операция','category':'Прочее','partner':''}
         response=self.client.post(reverse('operation_new'),values)
-        self.assertRedirects(response,reverse('operations'))
+        self.assertRedirects(response,reverse('record_detail',args=['operations',Operation.objects.get(description='Ручная операция').pk]))
         item=Operation.objects.get(description='Ручная операция')
         values['amount']='125.50'
+        values['revision']=item.revision
         self.assertEqual(self.client.post(reverse('record_edit',args=['operations',item.pk]),values).status_code,302)
         item.refresh_from_db();self.assertEqual(item.amount,Decimal('125.50'))
         values['amount']='0'
         response=self.client.post(reverse('operation_new'),values)
         self.assertEqual(response.status_code,200)
         self.assertContains(response,'Сумма операции не может быть нулевой')
-        self.assertEqual(self.client.post(reverse('record_delete',args=['operations',item.pk])).status_code,302)
+        self.assertEqual(self.client.post(reverse('record_delete',args=['operations',item.pk]), {'revision': item.revision}).status_code,302)
         item.refresh_from_db();self.assertFalse(item.active)
 
     def test_pages_filters_and_downloads(self):
@@ -177,7 +178,7 @@ class WorkflowTests(TestCase):
         self.assertEqual(response.context['page'].paginator.count,1)
 
     @override_settings(LOCAL_WORKSPACE=False)
-    def test_auth_csrf_and_imported_record_protection(self):
+    def test_auth_csrf_and_imported_record_access(self):
         anonymous=Client()
         self.assertEqual(anonymous.get('/').status_code,302)
         batch,_=stage_import(legacy_bytes(),'01.09.2026.xlsx');commit_import(batch.pk)
@@ -185,8 +186,8 @@ class WorkflowTests(TestCase):
         secure=Client(enforce_csrf_checks=True);secure.force_login(self.user)
         self.assertEqual(secure.post(reverse('import_confirm',args=[batch.pk])).status_code,403)
         item=Operation.objects.first()
-        self.assertEqual(self.client.post(reverse('record_delete',args=['operations',item.pk])).status_code,404)
-        self.assertEqual(self.client.get(reverse('record_edit',args=['operations',item.pk])).status_code,302)
+        self.assertEqual(self.client.get(reverse('record_edit',args=['operations',item.pk])).status_code,200)
+        self.assertEqual(secure.post(reverse('record_delete',args=['operations',item.pk]), {'revision': 0}).status_code,403)
 
     def test_templates_and_delivery_round_trip(self):
         for kind,title,headers in [('operations','Операции',OP_HEADERS),('deliveries','Поставки',DEL_HEADERS)]:

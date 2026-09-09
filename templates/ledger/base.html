@@ -2,7 +2,7 @@
 {% get_current_language as LANGUAGE_CODE %}<html lang="{{ LANGUAGE_CODE }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="{% translate "MetalFlow — операции, поставки металла и взаиморасчёты в одном рабочем пространстве." %}">
 <title>{{ title|ui }} · MetalFlow</title><link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
-<link rel="stylesheet" href="{% static 'css/app.css' %}"><link rel="stylesheet" href="{% static 'css/readability.css' %}">{{ client_messages|json_script:'ui-messages' }}<script src="{% static 'js/app.js' %}" defer></script></head>
+<link rel="stylesheet" href="{% static 'css/app.css' %}"><link rel="stylesheet" href="{% static 'css/readability.css' %}"><link rel="stylesheet" href="{% static 'css/debts.css' %}">{{ client_messages|json_script:'ui-messages' }}<script src="{% static 'js/app.js' %}" defer></script></head>
 <body>{% include 'ledger/icons.html' %}<a class="skip-link" href="#main">{% translate "Перейти к содержимому" %}</a>
 <button class="sidebar-overlay" aria-label="{% translate "Закрыть меню" %}" data-close-menu></button>
 <aside class="sidebar" id="sidebar">

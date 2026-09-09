@@ -3,6 +3,23 @@ import uuid
 from decimal import Decimal
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.utils import timezone
+
+
+class WorkspaceState(models.Model):
+    """One database row serializes writes, including SQLite imports/payments."""
+    revision = models.PositiveBigIntegerField(default=0)
+
+
+class Counterparty(models.Model):
+    name = models.CharField(_('Контрагент'), max_length=250)
+    key = models.CharField(max_length=500, unique=True)
+
+    class Meta:
+        ordering = ['name', 'pk']
+
+    def __str__(self):
+        return self.name
 
 
 class ImportBatch(models.Model):
@@ -46,6 +63,10 @@ class ActiveRecord(models.Model):
     source_sheet = models.CharField(max_length=100, blank=True)
     source_row = models.PositiveIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    revision = models.PositiveIntegerField(default=0)
+    modified_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -110,9 +131,57 @@ class PartnerBalance(ActiveRecord):
     payable_column = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     balance = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     note = models.CharField(max_length=500, blank=True)
+    counterparty = models.ForeignKey(Counterparty, null=True, on_delete=models.PROTECT, related_name='debts')
+    paid_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    due_date = models.DateField(_('Срок оплаты'), null=True, blank=True)
+
+    @property
+    def outstanding(self):
+        return abs(self.balance) - self.paid_amount
+
+    @property
+    def remaining(self):
+        return self.outstanding if self.balance >= 0 else -self.outstanding
+
+    @property
+    def overdue(self):
+        return self.active and self.outstanding > 0 and self.due_date is not None and self.due_date < timezone.localdate()
 
     class Meta:
         ordering = ['name']
+        constraints = [models.CheckConstraint(condition=models.Q(paid_amount__gte=0), name='paid_amount_nonnegative'),
+                       models.CheckConstraint(condition=models.Q(paid_amount__lte=models.functions.Abs('balance')), name='paid_within_debt')]
+
+
+class DebtPayment(models.Model):
+    debt = models.ForeignKey(PartnerBalance, on_delete=models.PROTECT, related_name='payments')
+    request_key = models.UUIDField(unique=True)
+    date = models.DateField(_('Дата оплаты'))
+    amount = models.DecimalField(_('Сумма оплаты, UZS'), max_digits=20, decimal_places=2, validators=[MinValueValidator(Decimal('.01'))])
+    note = models.CharField(_('Примечание'), max_length=500, blank=True)
+    actor = models.CharField(max_length=150, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    cancel_reason = models.CharField(max_length=500, blank=True)
+    cancelled_by = models.CharField(max_length=150, blank=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at', '-pk']
+        constraints = [models.CheckConstraint(condition=models.Q(amount__gt=0), name='debt_payment_positive')]
+
+
+class RecordChange(models.Model):
+    kind = models.CharField(max_length=20)
+    record_id = models.PositiveBigIntegerField()
+    action = models.CharField(max_length=20)
+    before = models.JSONField(default=dict)
+    after = models.JSONField(default=dict)
+    actor = models.CharField(max_length=150, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+        indexes = [models.Index(fields=['kind', 'record_id'])]
 
 
 class Activity(models.Model):
