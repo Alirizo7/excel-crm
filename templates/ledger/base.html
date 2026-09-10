@@ -3,7 +3,7 @@
 <meta name="description" content="{% translate "MetalFlow — операции, поставки металла и взаиморасчёты в одном рабочем пространстве." %}">
 <title>{{ title|ui }} · MetalFlow</title><link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
 <link rel="stylesheet" href="{% static 'css/app.css' %}"><link rel="stylesheet" href="{% static 'css/readability.css' %}"><link rel="stylesheet" href="{% static 'css/debts.css' %}">{{ client_messages|json_script:'ui-messages' }}<script src="{% static 'js/app.js' %}" defer></script></head>
-<body>{% include 'ledger/icons.html' %}<a class="skip-link" href="#main">{% translate "Перейти к содержимому" %}</a>
+<body class="{% block body_class %}{% endblock %}">{% include 'ledger/icons.html' %}<a class="skip-link" href="#main">{% translate "Перейти к содержимому" %}</a>
 <button class="sidebar-overlay" aria-label="{% translate "Закрыть меню" %}" data-close-menu></button>
 <aside class="sidebar" id="sidebar">
 <a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark"><b></b><b></b><b></b></span>metalflow<span class="brand-dot">.</span></a>
@@ -15,6 +15,7 @@
 <a href="{% url 'deliveries' %}" class="nav-link {% if nav == 'deliveries' %}active{% endif %}">{% include 'ledger/icon.html' with name='truck' %}{% translate "Поставки металла" %}</a>
 <a href="{% url 'partners' %}" class="nav-link {% if nav == 'partners' %}active{% endif %}">{% include 'ledger/icon.html' with name='users' %}{% translate "Взаиморасчёты" %}</a>
 <div class="nav-caption">{% translate "РАБОТА С EXCEL" %}</div>
+<a href="{% url 'workbooks' %}" class="nav-link {% if nav == 'workbooks' %}active{% endif %}">{% include 'ledger/icon.html' with name='sheet' %}{% translate "Рабочие книги" %}</a>
 <a href="{% url 'imports' %}" class="nav-link {% if nav == 'imports' %}active{% endif %}">{% include 'ledger/icon.html' with name='upload' %}{% translate "Импорт Excel" %}</a>
 <a href="{% url 'exports' %}" class="nav-link {% if nav == 'exports' %}active{% endif %}">{% include 'ledger/icon.html' with name='download' %}{% translate "Экспорт и отчёты" %}</a>
 <a href="{% url 'sheets' %}" class="nav-link {% if nav == 'sheets' %}active{% endif %}">{% include 'ledger/icon.html' with name='sheet' %}{% translate "Исходные листы" %}</a>
@@ -22,7 +23,7 @@
 <div class="sidebar-bottom">
 <div class="sidebar-note"><span class="tiny-label">{% translate "ПОСЛЕДНИЙ СНИМОК" %}</span>{% if current_batch %}<strong>{{ current_batch.report_date|date:'d.m.Y'|default:_('Без даты') }}</strong><a href="{% url 'import_detail' current_batch.pk %}"><span class="status-dot"></span> {{ current_batch.summary.sheets }} {% translate "листов в учёте" %} {% include 'ledger/icon.html' with name='chevron' %}</a>{% else %}<strong>{% translate "Начните с Excel" %}</strong><a href="{% url 'imports' %}">{% translate "Загрузить первую книгу →" %}</a>{% endif %}</div>
 <a href="{% url 'help' %}" class="nav-link {% if nav == 'help' %}active{% endif %}">{% include 'ledger/icon.html' with name='help' %}{% translate "Помощь и инструкции" %}</a>
-<div class="profile"><span class="profile-avatar">{% if user.is_authenticated %}{{ user.username|first|upper }}{% else %}M{% endif %}</span><div><strong>{% if user.is_authenticated %}{{ user.username }}{% else %}{% translate "Моё пространство" %}{% endif %}</strong><span>{% if local_workspace %}{% translate "Локальный доступ" %}{% else %}{% translate "Авторизованный доступ" %}{% endif %}</span></div>{% if user.is_authenticated %}<form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="icon-button" title="{% translate "Выйти" %}">{% include 'ledger/icon.html' with name='out' %}</button></form>{% endif %}</div>
+<div class="profile"><span class="profile-avatar">{{ user.username|first|upper }}</span><div><strong>{{ user.username }}</strong><span>{% translate "Авторизованный доступ" %}</span></div><form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="icon-button" title="{% translate "Выйти" %}" aria-label="{% translate "Выйти" %}">{% include 'ledger/icon.html' with name='out' %}</button></form></div>
 </div></aside>
 <div class="app-shell"><header class="topbar"><div class="breadcrumb"><button class="icon-button mobile-menu" data-menu aria-label="{% translate "Открыть меню" %}" aria-controls="sidebar" aria-expanded="false">{% include 'ledger/icon.html' with name='menu' %}</button><span>{% translate "Рабочее пространство" %}</span>{% include 'ledger/icon.html' with name='chevron' %}<strong>{{ title|ui }}</strong></div>
 <div class="topbar-right">{% include "ledger/language_switcher.html" %}<form class="global-search" action="{% url 'operations' %}">{% include 'ledger/icon.html' with name='search' %}<input name="q" aria-label="{% translate "Поиск операций" %}" placeholder="{% translate "Найти операцию…" %}" id="global-search"><kbd>/</kbd></form><span class="currency-chip"><span class="status-dot"></span> UZS</span></div></header>

@@ -1,5 +1,5 @@
-from django.conf import settings
 from django.contrib.auth.views import redirect_to_login
+from django.urls import reverse
 
 
 class WorkspaceAccessMiddleware:
@@ -7,7 +7,9 @@ class WorkspaceAccessMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        local = settings.LOCAL_WORKSPACE and request.META.get('REMOTE_ADDR') in ('127.0.0.1', '::1')
-        if not local and not request.user.is_authenticated and not (request.path.startswith(('/login/', '/static/')) or request.path == '/i18n/setlang/'):
+        public_paths = {reverse('login'), reverse('set_language')}
+        if (not request.user.is_authenticated
+                and request.path not in public_paths
+                and not request.path_info.startswith('/static/')):
             return redirect_to_login(request.get_full_path())
         return self.get_response(request)

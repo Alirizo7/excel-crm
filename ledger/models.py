@@ -192,3 +192,31 @@ class Activity(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class WorkingWorkbook(models.Model):
+    batch = models.OneToOneField(ImportBatch, on_delete=models.PROTECT, related_name='working_book')
+    data = models.JSONField(default=dict)
+    projection = models.JSONField(default=dict)
+    ledger_baseline = models.JSONField(default=dict)
+    revision = models.PositiveIntegerField(default=1)
+    applied_revision = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        permissions = [('edit_workbook_formulas', 'Can edit workbook formulas and structure')]
+
+
+class WorkbookVersion(models.Model):
+    workbook = models.ForeignKey(WorkingWorkbook, on_delete=models.CASCADE, related_name='versions')
+    revision = models.PositiveIntegerField()
+    payload = models.BinaryField()
+    changes = models.JSONField(default=list)
+    actor = models.CharField(max_length=150, blank=True)
+    reason = models.CharField(max_length=30, default='edit')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-revision']
+        constraints = [models.UniqueConstraint(fields=['workbook', 'revision'], name='unique_workbook_revision')]

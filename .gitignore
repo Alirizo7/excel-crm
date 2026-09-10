@@ -20,3 +20,4 @@ test-results/
 *.csv
 *.tsv
 *.log
+node_modules/

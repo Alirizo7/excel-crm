@@ -177,7 +177,6 @@ class WorkflowTests(TestCase):
         response=self.client.get(reverse('operations'),{'q':'Сторно'})
         self.assertEqual(response.context['page'].paginator.count,1)
 
-    @override_settings(LOCAL_WORKSPACE=False)
     def test_auth_csrf_and_imported_record_access(self):
         anonymous=Client()
         self.assertEqual(anonymous.get('/').status_code,302)

@@ -166,7 +166,7 @@ def category(description):
     return gettext_noop('Прочее')
 
 
-def inspect_workbook(data, filename, report_date=None):
+def inspect_workbook(data, filename, report_date=None, skip_existing_ids=True):
     if len(data) > MAX_BYTES or not filename.lower().endswith('.xlsx'):
         raise ValidationError(gettext_noop('Выберите файл .xlsx размером не больше 10 МБ.'))
     try:
@@ -335,7 +335,7 @@ def inspect_workbook(data, filename, report_date=None):
                 record.update(source_sheet=sheet.title, source_row=row)
                 obj = model(**record)
                 obj.full_clean(exclude=['uid', 'batch', 'source_row'], validate_unique=False, validate_constraints=False)
-                if model.objects.filter(uid=uid).exists():
+                if skip_existing_ids and model.objects.filter(uid=uid).exists():
                     issues.append({'level': 'info', 'sheet': sheet.title, 'cell': f'A{row}',
                                    'message': gettext_noop('ID уже существует. Строка пропущена; существующая запись не изменяется.')})
                 else:

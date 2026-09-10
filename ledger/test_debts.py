@@ -4,6 +4,7 @@ from decimal import Decimal
 from io import BytesIO
 from tempfile import TemporaryDirectory
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
@@ -18,9 +19,9 @@ from .services.importing import stage_import, commit_import
 from .tests import legacy_bytes, book_bytes
 
 
-@override_settings(LOCAL_WORKSPACE=True)
 class DebtWorkflowTests(TestCase):
     def setUp(self):
+        self.client.force_login(get_user_model().objects.get(username='admin'))
         self.media = TemporaryDirectory()
         self.override = override_settings(MEDIA_ROOT=self.media.name)
         self.override.enable()
@@ -222,10 +223,9 @@ class DebtWorkflowTests(TestCase):
         self.assertContains(self.client.get(reverse('partners')), 'Qarzlar va hisob-kitoblar')
         self.assertContains(self.client.get(reverse('debt_detail', args=[self.debt.pk])), 'To‘lanishi qolgan')
 
-    @override_settings(LOCAL_WORKSPACE=False)
     def test_auth_and_csrf_protect_all_debt_mutations(self):
+        self.client.logout()
         self.assertEqual(self.client.post(reverse('payment_new', args=[self.debt.pk]), {}).status_code, 302)
-        from django.contrib.auth import get_user_model
         user = get_user_model().objects.create_user('debt-tester')
         secure = Client(enforce_csrf_checks=True); secure.force_login(user)
         self.assertEqual(secure.post(reverse('payment_new', args=[self.debt.pk]), {}).status_code, 403)

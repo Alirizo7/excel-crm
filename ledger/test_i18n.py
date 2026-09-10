@@ -3,6 +3,7 @@ from decimal import Decimal
 from io import BytesIO
 from tempfile import TemporaryDirectory
 
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -17,9 +18,9 @@ from .services.importing import commit_import, inspect_workbook, stage_import
 from .tests import legacy_bytes
 
 
-@override_settings(LOCAL_WORKSPACE=True)
 class InterfaceLanguageTests(TestCase):
     def setUp(self):
+        self.client.force_login(get_user_model().objects.get(username='admin'))
         self.media = TemporaryDirectory()
         self.addCleanup(self.media.cleanup)
         self.override = override_settings(MEDIA_ROOT=self.media.name)
@@ -111,7 +112,6 @@ class InterfaceLanguageTests(TestCase):
                 self.assertTrue(any('ID уже существует' in issue['message'] for issue in result['issues']))
             self.assertEqual(translation.get_language(), 'uz')
 
-    @override_settings(LOCAL_WORKSPACE=False)
     def test_language_can_be_changed_on_login_with_csrf(self):
         client = Client(enforce_csrf_checks=True)
         next_url = reverse('login') + '?next=%2Fexports%2F'

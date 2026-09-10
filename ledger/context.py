@@ -1,11 +1,11 @@
-from django.conf import settings
 from django.utils.translation import gettext
 from .models import ImportBatch, Operation
 
 
 def workspace(request):
+    if not request.user.is_authenticated:
+        return {}
     return {'current_batch': ImportBatch.objects.filter(format='legacy', status='imported').first(),
-            'local_workspace': settings.LOCAL_WORKSPACE,
             'nav_operation_count': Operation.objects.filter(active=True).count(),
             'client_messages': {
                 # Match the server's money filter in both interface languages:

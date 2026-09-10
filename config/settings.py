@@ -8,7 +8,6 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'local-development-only-metalflow-20
 if not DEBUG and SECRET_KEY == 'local-development-only-metalflow-2026':
     raise ImproperlyConfigured('Set DJANGO_SECRET_KEY for production.')
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1],testserver').split(',')
-LOCAL_WORKSPACE = DEBUG and os.getenv('LOCAL_WORKSPACE', '1') == '1'
 INSTALLED_APPS = ['django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes',
                   'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles', 'ledger']
 MIDDLEWARE = ['django.middleware.security.SecurityMiddleware', 'whitenoise.middleware.WhiteNoiseMiddleware',

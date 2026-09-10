@@ -1,6 +1,17 @@
 from django.urls import path
-from . import views, debt_views
+from . import views, debt_views, workbook_views
 urlpatterns = [path('', views.dashboard, name='dashboard'),
+    path('workbooks/', workbook_views.index, name='workbooks'),
+    path('workbooks/create/<int:batch_id>/', workbook_views.create, name='workbook_create'),
+    path('workbooks/<int:pk>/', workbook_views.editor, name='workbook_detail'),
+    path('workbooks/<int:pk>/data/', workbook_views.data, name='workbook_data'),
+    path('workbooks/<int:pk>/save/', workbook_views.save, name='workbook_save'),
+    path('workbooks/<int:pk>/history/', workbook_views.history, name='workbook_history'),
+    path('workbooks/<int:pk>/versions/<int:version>/', workbook_views.editor, name='workbook_version'),
+    path('workbooks/<int:pk>/restore/<int:version>/', workbook_views.restore, name='workbook_restore'),
+    path('workbooks/<int:pk>/preview/', workbook_views.preview, name='workbook_preview'),
+    path('workbooks/<int:pk>/apply/', workbook_views.apply, name='workbook_apply'),
+    path('workbooks/<int:pk>/download/', workbook_views.download, name='workbook_download'),
     path('operations/', views.operations, name='operations'), path('deliveries/', views.deliveries, name='deliveries'),
     path('partners/', debt_views.partners, name='partners'),
     path('partners/<int:pk>/', debt_views.partner_detail, name='partner_detail'),
