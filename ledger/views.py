@@ -6,7 +6,7 @@ from pathlib import Path
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Sum, Q, Count
+from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -67,17 +67,11 @@ def dashboard(request):
     monthly = list(operations.exclude(date=None).annotate(month=TruncMonth('date')).values('month').annotate(
         income=Sum('amount', filter=Q(kind='income')), expense=Sum('amount', filter=Q(kind='expense'))).order_by('month'))[-12:]
     chart = [{'label': x['month'].strftime('%m.%Y'), 'income': float(x['income'] or 0), 'expense': float(x['expense'] or 0)} for x in monthly]
-    categories = list(operations.filter(kind='expense').values('category').annotate(total=Sum('amount')).order_by('-total'))
-    expense_total = sum(x['total'] for x in categories)
-    for item in categories:
-        item['percent'] = round(float(item['total']/expense_total*100), 1) if expense_total else 0
     stats = totals(operations)
-    return render(request, 'ledger/dashboard.html', {'nav': 'dashboard', 'title': gettext_noop('Обзор бизнеса'), 'stats': stats,
-        'filters': filters, 'operation_count': operations.count(), 'latest': operations[:6],
+    return render(request, 'ledger/dashboard.html', {'nav': 'dashboard', 'title': gettext_noop('Итоги'), 'stats': stats,
+        'filters': filters,
         'shipment_weight': deliveries.filter(direction='out').aggregate(v=Sum('clean_weight'))['v'] or 0,
-        'shipment_count': deliveries.filter(direction='out').count(), 'categories': categories,
-        'chart_data': chart, 'expense_data': [{'label':gettext(x['category']), 'value':float(x['total'])} for x in categories],
-        'activities': Activity.objects.all()[:3], 'partner_count': PartnerBalance.objects.filter(active=True).count(),
+        'chart_data': chart,
         'debt_stats': debt_stats(debt_rows().filter(active=True)),
         'undated': operations.filter(date=None).count()})
 
@@ -175,14 +169,14 @@ def imports(request):
                 return redirect('import_detail', pk=batch.pk)
             except ValidationError as exc:
                 form.add_error('file', ValidationError([localize_system_text(message) for message in exc.messages]))
-    return render(request, 'ledger/imports.html', {'nav':'imports', 'title':gettext_noop('Импорт Excel'), 'form':form,
+    return render(request, 'ledger/imports.html', {'nav':'workbooks', 'title':gettext_noop('Загрузить Excel'), 'form':form,
                                                  'batches':ImportBatch.objects.all()[:15]})
 
 
 def import_detail(request, pk):
     batch = get_object_or_404(ImportBatch, pk=pk)
     issues = batch.issues
-    return render(request, 'ledger/import_detail.html', {'nav':'imports', 'title':gettext_noop('Проверка файла'), 'batch':batch,
+    return render(request, 'ledger/import_detail.html', {'nav':'workbooks', 'title':gettext_noop('Проверка файла'), 'batch':batch,
         'issues': Paginator(issues, 25).get_page(request.GET.get('page')),
         'preview_operations': batch.payload.get('operations', [])[:5],
         'impact': import_impact() if batch.format == 'legacy' else {},
@@ -198,12 +192,21 @@ def import_confirm(request, pk):
         messages.success(request, gettext_noop('Импорт завершён. Данные доступны в учёте и отчётах.'))
     except ValidationError as exc:
         messages.error(request, ' '.join(localize_system_text(message) for message in exc.messages))
-    return redirect('import_detail', pk=pk)
+        return redirect('import_detail', pk=pk)
+    from .services.workbooks import create_book
+    batch = ImportBatch.objects.get(pk=pk)
+    if batch.format == 'legacy':
+        try:
+            book = create_book(pk, actor(request))
+        except ValidationError as exc:
+            messages.error(request, ' '.join(exc.messages))
+            return redirect('workbooks')
+        return redirect('workbook_detail', pk=book.pk)
+    return redirect('operations' if batch.format == 'operations' else 'deliveries')
 
 
 def sheets(request):
-    batches = ImportBatch.objects.prefetch_related('sheets').all()
-    return render(request, 'ledger/sheets.html', {'nav':'sheets', 'title':gettext_noop('Исходные листы'), 'batches':batches})
+    return redirect(reverse('imports') + '#file-history')
 
 
 def sheet_detail(request, pk):
@@ -225,10 +228,7 @@ def sheet_detail(request, pk):
 
 
 def exports(request):
-    return render(request, 'ledger/exports.html', {'nav':'exports', 'title':gettext_noop('Экспорт и отчёты'),
-        'filters':DateFilters(request.GET), 'counts':{'operations':Operation.objects.filter(active=True).count(),
-        'deliveries':Delivery.objects.filter(active=True).count(), 'partners':PartnerBalance.objects.filter(active=True).count()},
-        'batches':ImportBatch.objects.filter(status__in=['imported','superseded'])[:8]})
+    return redirect(reverse('dashboard') + ('?' + request.GET.urlencode() if request.GET else '') + '#reports')
 
 
 def export_download(request, kind):
@@ -263,4 +263,4 @@ def source_download(request, pk):
 
 
 def help_page(request):
-    return render(request, 'ledger/help.html', {'nav':'help', 'title':gettext_noop('Как работать с MetalFlow')})
+    return redirect('workbooks')

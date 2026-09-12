@@ -1,11 +1,13 @@
 from django.urls import path
 from . import views, debt_views, workbook_views
-urlpatterns = [path('', views.dashboard, name='dashboard'),
+urlpatterns = [path('', workbook_views.index, name='home'),
+    path('summary/', views.dashboard, name='dashboard'),
     path('workbooks/', workbook_views.index, name='workbooks'),
     path('workbooks/create/<int:batch_id>/', workbook_views.create, name='workbook_create'),
     path('workbooks/<int:pk>/', workbook_views.editor, name='workbook_detail'),
     path('workbooks/<int:pk>/data/', workbook_views.data, name='workbook_data'),
     path('workbooks/<int:pk>/save/', workbook_views.save, name='workbook_save'),
+    path('workbooks/<int:pk>/finish/', workbook_views.finish, name='workbook_finish'),
     path('workbooks/<int:pk>/history/', workbook_views.history, name='workbook_history'),
     path('workbooks/<int:pk>/versions/<int:version>/', workbook_views.editor, name='workbook_version'),
     path('workbooks/<int:pk>/restore/<int:version>/', workbook_views.restore, name='workbook_restore'),

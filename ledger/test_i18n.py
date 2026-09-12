@@ -47,10 +47,10 @@ class InterfaceLanguageTests(TestCase):
         self.assertContains(self.client.get(reverse('record_detail', args=['operations', item.pk])), 'Металл')
         item.refresh_from_db()
         self.assertEqual(item.category, 'Прочее')
-        self.assertContains(self.client.get(reverse('exports')), 'Eksport va hisobotlar')
+        self.assertContains(self.client.get(reverse('exports'), follow=True), 'Natijalar')
         self.client.post(reverse('set_language'), {'language': 'ru', 'next': '/'})
         self.assertContains(self.client.get('/'), '<html lang="ru">')
-        self.assertContains(self.client.get('/'), 'Обзор бизнеса')
+        self.assertContains(self.client.get('/'), 'Таблица')
 
     def test_uzbek_pages_and_saved_import_issues(self):
         batch, _ = stage_import(legacy_bytes(), '01.09.2026.xlsx')
@@ -58,7 +58,7 @@ class InterfaceLanguageTests(TestCase):
         self.use_uzbek()
         for route in ['dashboard', 'operations', 'deliveries', 'partners', 'imports', 'exports', 'sheets', 'help', 'operation_new', 'delivery_new']:
             with self.subTest(route=route):
-                response = self.client.get(reverse(route))
+                response = self.client.get(reverse(route), follow=True)
                 self.assertContains(response, '<html lang="uz">')
                 self.assertNotContains(response, 'Рабочее пространство')
         response = self.client.get(reverse('import_detail', args=[batch.pk]))

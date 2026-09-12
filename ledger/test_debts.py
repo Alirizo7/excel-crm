@@ -61,7 +61,7 @@ class DebtWorkflowTests(TestCase):
                   'request_key': str(uuid.uuid4()), 'revision': 0}
         url = reverse('payment_new', args=[self.debt.pk])
         for _ in range(2):
-            self.assertRedirects(self.client.post(url, values), reverse('debt_detail', args=[self.debt.pk]))
+            self.assertRedirects(self.client.post(url, values), reverse('partners'))
         self.assertEqual(DebtPayment.objects.count(), 1)
         self.debt.refresh_from_db()
         self.assertEqual(self.debt.paid_amount, Decimal('1000.50'))
@@ -220,7 +220,7 @@ class DebtWorkflowTests(TestCase):
             response = self.client.get(reverse(name, args=args))
             self.assertContains(response, '<html lang="uz">')
             self.assertNotContains(response, 'Осталось погасить')
-        self.assertContains(self.client.get(reverse('partners')), 'Qarzlar va hisob-kitoblar')
+        self.assertContains(self.client.get(reverse('partners')), 'Qarzlar')
         self.assertContains(self.client.get(reverse('debt_detail', args=[self.debt.pk])), 'To‘lanishi qolgan')
 
     def test_auth_and_csrf_protect_all_debt_mutations(self):

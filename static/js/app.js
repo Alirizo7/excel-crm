@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   document.querySelectorAll('[data-dismiss]').forEach(button => button.addEventListener('click', () => button.closest('.toast').remove()));
+  document.querySelectorAll('[data-busy-submit]').forEach(button=>button.form.addEventListener('submit',()=>{button.disabled=true;button.setAttribute('aria-busy','true');}));
+  document.addEventListener('click',e=>document.querySelectorAll('.more-menu[open]').forEach(menu=>{if(!menu.contains(e.target))menu.open=false;}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.more-menu[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary').focus();});});
+  if(location.hash==='#file-history'){const history=document.getElementById('file-history');if(history)history.open=true;}
   const file = document.getElementById('excel-file'), zone = document.getElementById('dropzone');
   if (file && zone) {
     const showFile = () => {

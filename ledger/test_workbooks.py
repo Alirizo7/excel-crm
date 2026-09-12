@@ -13,7 +13,7 @@ from unittest import skipUnless
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from openpyxl import load_workbook
 
@@ -169,7 +169,7 @@ class WorkbookTests(TestCase):
 
     def test_pages_post_validation_and_archive(self):
         for url in ['workbooks','workbook_detail','workbook_history','workbook_preview','workbook_data','workbook_download']:
-            response=self.client.get(reverse(url,args=[] if url=='workbooks' else [self.book.pk]))
+            response=self.client.get(reverse(url,args=[] if url=='workbooks' else [self.book.pk]),follow=True)
             self.assertEqual(response.status_code,200,url)
         response=self.client.post(reverse('workbook_save',args=[self.book.pk]),data='{}',content_type='application/json')
         self.assertEqual(response.status_code,400)
@@ -187,6 +187,102 @@ class WorkbookTests(TestCase):
 
     def test_default_admin_can_edit_formulas(self):
         self.assertContains(self.client.get(reverse('workbook_detail', args=[self.book.pk])), 'data-formulas="true"')
+
+    def finish(self, **extra):
+        return self.client.post(reverse('workbook_finish', args=[self.book.pk]),
+            data=json.dumps({'revision': self.book.revision, **extra}), content_type='application/json')
+
+    def test_home_opens_current_table_and_import_opens_next_table(self):
+        self.assertRedirects(self.client.get(reverse('home')), reverse('workbook_detail', args=[self.book.pk]))
+        new, _ = stage_import(legacy_bytes(income=999), '02.09.2026.xlsx')
+        response = self.client.post(reverse('import_confirm', args=[new.pk]), {'debt_policy': 'keep'})
+        new_book = WorkingWorkbook.objects.get(batch=new)
+        self.assertRedirects(response, reverse('workbook_detail', args=[new_book.pk]))
+        self.assertRedirects(self.client.get(reverse('home')), reverse('workbook_detail', args=[new_book.pk]))
+        self.book.batch.refresh_from_db()
+        self.assertEqual(self.book.batch.status, 'superseded')
+
+    def test_finish_updates_formula_results_and_retry_does_not_duplicate(self):
+        self.edited('тура ака', 4, 6, 30000, allowed=False)
+        response = self.finish()
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()['count'], 1)
+        delivery = Delivery.objects.get()
+        self.assertEqual(delivery.gross, 30000)
+        self.assertEqual(delivery.amount, Decimal('59010930'))
+        self.book.refresh_from_db()
+        self.assertEqual(self.book.applied_revision, self.book.revision)
+        self.assertEqual(self.finish().json()['count'], 0)
+        self.assertEqual(Delivery.objects.count(), 1)
+
+    def test_finish_invalid_values_block_all_changes_and_keep_copy(self):
+        self.edited('тура ака', 4, 6, 30000)
+        self.edited('Приход-Расход', 4, 5, 'не число')
+        response = self.finish()
+        self.assertEqual(response.status_code, 422)
+        self.assertTrue(response.json()['issues'])
+        self.assertEqual(Delivery.objects.get().gross, 26610)
+        self.assertEqual(Operation.objects.filter(active=True).count(), 4)
+        self.book.refresh_from_db()
+        self.assertGreater(self.book.revision, self.book.applied_revision)
+
+    def test_finish_requires_explicit_confirmation_for_removals(self):
+        record = Operation.objects.get(kind='income', source_row=4)
+        self.edited('Приход-Расход', 4, 5, None)
+        response = self.finish()
+        self.assertTrue(response.json()['confirmation_required'])
+        self.assertTrue(response.json()['removals'])
+        record.refresh_from_db()
+        self.assertTrue(record.active)
+        response = self.finish(confirmation_token=response.json()['token'])
+        self.assertEqual(response.status_code, 200, response.content)
+        record.refresh_from_db()
+        self.assertFalse(record.active)
+        self.assertTrue(RecordChange.objects.filter(record_id=record.pk, action='delete').exists())
+
+    def test_finish_rejects_changed_record_after_removal_confirmation(self):
+        record = Operation.objects.get(kind='income', source_row=4)
+        self.edited('Приход-Расход', 4, 5, None)
+        confirmation = self.finish().json()['token']
+        record.amount += 10
+        record.save()
+        response = self.finish(confirmation_token=confirmation)
+        self.assertIn(response.status_code, (409, 422))
+        record.refresh_from_db()
+        self.assertTrue(record.active)
+
+    def test_finish_preserves_payments_and_blocks_debt_below_paid_amount(self):
+        debt = PartnerBalance.objects.get(name='Партнёр А')
+        record_payment(debt.pk, amount=Decimal('100'), date=date(2026, 9, 1), note='',
+            request_key=uuid.uuid4(), revision=debt.revision, actor='tester')
+        self.edited('Кунлик', 5, 4, 1500)
+        self.assertEqual(self.finish().status_code, 200)
+        debt.refresh_from_db()
+        self.assertEqual(debt.paid_amount, 100)
+        self.assertEqual(debt.outstanding, 1150)
+        self.edited('Кунлик', 5, 4, 300)
+        self.assertEqual(self.finish().status_code, 422)
+        debt.refresh_from_db()
+        self.assertEqual(debt.outstanding, 1150)
+
+    def test_finish_checks_revision_method_csrf_and_archived_books(self):
+        url = reverse('workbook_finish', args=[self.book.pk])
+        self.assertEqual(self.client.get(url).status_code, 405)
+        secure = Client(enforce_csrf_checks=True)
+        secure.force_login(get_user_model().objects.get(username='admin'))
+        self.assertEqual(secure.post(url, data='{}', content_type='application/json').status_code, 403)
+        self.assertEqual(self.finish(revision=-1).status_code, 409)
+        self.assertEqual(self.client.post(url, data='{}', content_type='application/json').status_code, 400)
+        self.edited('Приход-Расход', 4, 5, 777)
+        new, _ = stage_import(legacy_bytes(income=999), '02.09.2026.xlsx')
+        commit_import(new.pk)
+        self.assertEqual(self.finish().status_code, 400)
+
+    def test_removed_sections_redirect_to_relevant_pages(self):
+        self.assertRedirects(self.client.get(reverse('exports') + '?start=2026-09-01'),
+            reverse('dashboard') + '?start=2026-09-01#reports')
+        self.assertRedirects(self.client.get(reverse('sheets')), reverse('imports') + '#file-history')
+        self.assertRedirects(self.client.get(reverse('help')), reverse('workbooks'), fetch_redirect_response=False)
 
 
 @skipUnless(os.getenv('WORKBOOK_PATH'), 'Set WORKBOOK_PATH to check the original customer workbook')

@@ -75,7 +75,7 @@ class WorkspaceAuthenticationTests(TestCase):
             **credentials, 'csrfmiddlewaretoken': client.cookies['csrftoken'].value,
         })
         self.assertRedirects(response, target)
-        self.assertRedirects(client.get(reverse('login')), reverse('dashboard'))
+        self.assertRedirects(client.get(reverse('login')), reverse('home'))
         self.assertEqual(client.get(reverse('logout')).status_code, 405)
         self.assertEqual(client.post(reverse('logout')).status_code, 403)
         self.assertRedirects(client.post(reverse('logout'), {
@@ -99,4 +99,4 @@ class WorkspaceAuthenticationTests(TestCase):
                 response = client.post(reverse('login'), {
                     'username': 'admin', 'password': 'admin123', 'next': target,
                 })
-                self.assertRedirects(response, reverse('dashboard'))
+                self.assertRedirects(response, reverse('home'))

@@ -41,7 +41,7 @@ def partners(request):
         rows = rows.filter(balance__gt=0)
     elif request.GET.get('side') == 'payable':
         rows = rows.filter(balance__lt=0)
-    return render(request, 'ledger/partners.html', {'nav': 'partners', 'title': _('Долги и взаиморасчёты'),
+    return render(request, 'ledger/partners.html', {'nav': 'partners', 'title': _('Долги'),
         'page': Paginator(rows.order_by('-amount_left', 'name', 'pk'), 25).get_page(request.GET.get('page')),
         'stats': stats, 'status': status, 'recent_payments': DebtPayment.objects.select_related('debt__counterparty').all()[:6]})
 
@@ -126,8 +126,8 @@ def payment_new(request, pk):
             form.add_error(None, exc)
         else:
             messages.success(request, _('Погашение записано. Остаток долга обновлён.') if created else _('Эта оплата уже записана. Повтор не создан.'))
-            return redirect('debt_detail', pk=pk)
-    return render(request, 'ledger/payment_form.html', {'nav': 'partners', 'title': _('Погашение долга'), 'debt': debt, 'form': form})
+            return redirect('partners')
+    return render(request, 'ledger/payment_form.html', {'nav': 'partners', 'title': _('Внести оплату'), 'debt': debt, 'form': form})
 
 
 def payment_cancel(request, pk):

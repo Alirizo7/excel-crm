@@ -163,7 +163,7 @@ class WorkflowTests(TestCase):
     def test_pages_filters_and_downloads(self):
         batch,_=stage_import(legacy_bytes(),'01.09.2026.xlsx');commit_import(batch.pk)
         for route in ['dashboard','operations','deliveries','partners','imports','exports','sheets','help']:
-            response=self.client.get(reverse(route));self.assertEqual(response.status_code,200,(route,response.content[:500]))
+            response=self.client.get(reverse(route),follow=True);self.assertEqual(response.status_code,200,(route,response.content[:500]))
         for sheet in SourceSheet.objects.all():
             self.assertEqual(self.client.get(reverse('sheet_detail',args=[sheet.pk])).status_code,200)
         self.assertEqual(self.client.get(reverse('import_detail',args=[batch.pk])).status_code,200)
