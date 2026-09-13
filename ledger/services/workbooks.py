@@ -248,9 +248,18 @@ def preview_book(book):
     return plans, blocked, token, projected, issues
 
 
-def apply_book(book_id, revision, token, actor):
-    book = WorkingWorkbook.objects.select_related('batch').get(pk=book_id)
-    projected, issues = project(book.data, book.batch)
+def apply_book(book_id, revision, token, actor, *, prepared=None):
+    # The one-click view has already projected this exact workbook revision.
+    # Reuse that work, but always recheck the revision and CRM state under lock.
+    if prepared is None:
+        book = WorkingWorkbook.objects.select_related('batch').get(pk=book_id)
+        if book.revision != revision:
+            raise WorkbookConflict(_('Книга изменилась. Заново откройте проверку изменений.'))
+        projected, issues = project(book.data, book.batch)
+    else:
+        prepared_revision, projected, issues = prepared
+        if prepared_revision != revision:
+            raise WorkbookConflict(_('Книга изменилась. Заново откройте проверку изменений.'))
     with workspace_transaction():
         book = WorkingWorkbook.objects.select_related('batch').get(pk=book_id)
         current_book(book)

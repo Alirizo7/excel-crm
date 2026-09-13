@@ -2,7 +2,7 @@
   "name": "metalflow-workbook",
   "private": true,
   "type": "module",
-  "scripts": {"build": "node scripts/build-workbook.mjs"},
+  "scripts": {"build": "node scripts/build-workbook.mjs", "test": "node --test frontend/*.test.js"},
   "dependencies": {
     "@univerjs/presets": "0.25.1",
     "@univerjs/preset-sheets-core": "0.25.1",

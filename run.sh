@@ -15,4 +15,5 @@ if [ ! -d node_modules/@univerjs/preset-sheets-node-core ]; then
     exit 1
 fi
 .venv/bin/python manage.py migrate --noinput
+.venv/bin/python manage.py bootstrap_workspace
 exec .venv/bin/python manage.py runserver "127.0.0.1:${PORT:-8765}"

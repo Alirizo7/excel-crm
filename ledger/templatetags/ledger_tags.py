@@ -1,9 +1,24 @@
 from django.utils.translation import gettext_noop
 from decimal import Decimal, InvalidOperation
 from django import template
+from django.conf import settings
+from django.contrib.staticfiles import finders
+from django.templatetags.static import static
+from pathlib import Path
 from django.utils.translation import gettext
 from ledger.i18n import localize_system_text
 register = template.Library()
+
+
+@register.simple_tag
+def versioned_static(name):
+    """Refresh rebuilt editor assets even when a browser retains its old bundle."""
+    url = static(name)
+    source = finders.find(name) if settings.DEBUG else Path(settings.STATIC_ROOT) / name
+    try:
+        return f'{url}?v={Path(source).stat().st_mtime_ns}' if source else url
+    except OSError:
+        return url
 
 
 @register.filter

@@ -22,7 +22,7 @@ TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates', 'DIR
               'django.contrib.auth.context_processors.auth', 'django.contrib.messages.context_processors.messages',
               'ledger.context.workspace']}}]
 WSGI_APPLICATION = 'config.wsgi.application'
-DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3',
+DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': Path(os.getenv('DJANGO_DB_PATH', BASE_DIR / 'db.sqlite3')),
                           'OPTIONS': {'timeout': 30}}}
 AUTH_PASSWORD_VALIDATORS = [{'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
                            {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -40,7 +40,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.getenv('DJANGO_MEDIA_ROOT', BASE_DIR / 'media'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'

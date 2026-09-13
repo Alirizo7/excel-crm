@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import uuid
+from copy import copy
 from datetime import date, datetime
 from io import BytesIO
 from pathlib import Path
@@ -323,32 +324,37 @@ def write_xlsx(data, cached=True):
                 cell.value = entry.get('f') or entry.get('v')
                 if not entry.get('f') and isinstance(entry.get('v'), str):
                     cell.data_type = 's'
-                style = entry.get('s')
-                style = data.get('styles', {}).get(style, {}) if isinstance(style, str) else (style or {})
+                reference = entry.get('s')
+                style = data.get('styles', {}).get(reference, {}) if isinstance(reference, str) else (reference or {})
                 if isinstance(style, dict):
-                    key = json.dumps(style, sort_keys=True)
+                    key = ('id', reference) if isinstance(reference, str) else ('inline', json.dumps(style, sort_keys=True))
                     if key not in style_cache:
                         def rgb(part, fallback='000000'):
                             value = style.get(part, {})
                             value = value.get('rgb', '') if isinstance(value, dict) else ''
                             return value.lstrip('#') if re.fullmatch(r'#[0-9A-Fa-f]{6}', value) else fallback
-                        style_cache[key] = {
+                        parts = {
                             'font': Font(name=style.get('ff', 'Arial'), size=style.get('fs', 11), bold=bool(style.get('bl')), italic=bool(style.get('it')), color=rgb('cl')),
                             'fill': PatternFill('solid', fgColor=rgb('bg', 'FFFFFF')) if style.get('bg') else PatternFill(),
                             'alignment': Alignment(horizontal={1: 'left', 2: 'center', 3: 'right'}.get(style.get('ht')), vertical={1: 'top', 2: 'center', 3: 'bottom'}.get(style.get('vt'), 'center'), wrap_text=style.get('tb') == 3),
                         }
-                    for attr, value in style_cache[key].items():
-                        setattr(cell, attr, value)
-                    cell.number_format = style.get('n', {}).get('pattern', 'General') if isinstance(style.get('n'), dict) else 'General'
-                    sides = {}
-                    for short, edge in [('t', 'top'), ('b', 'bottom'), ('l', 'left'), ('r', 'right')]:
-                        b = (style.get('bd') or {}).get(short)
-                        if isinstance(b, dict):
-                            co = (b.get('cl') or {}).get('rgb', '#D3DED7')
-                            co = co.lstrip('#') if re.fullmatch(r'#[0-9A-Fa-f]{6}', co) else 'D3DED7'
-                            sides[edge] = Side(style={1:'thin', 2:'medium', 3:'dashed', 4:'dotted', 5:'thick', 6:'double'}.get(b.get('s'), 'thin'), color=co)
-                    if sides:
-                        cell.border = Border(**sides)
+                        for attr, value in parts.items():
+                            setattr(cell, attr, value)
+                        cell.number_format = style.get('n', {}).get('pattern', 'General') if isinstance(style.get('n'), dict) else 'General'
+                        sides = {}
+                        for short, edge in [('t', 'top'), ('b', 'bottom'), ('l', 'left'), ('r', 'right')]:
+                            b = (style.get('bd') or {}).get(short)
+                            if isinstance(b, dict):
+                                co = (b.get('cl') or {}).get('rgb', '#D3DED7')
+                                co = co.lstrip('#') if re.fullmatch(r'#[0-9A-Fa-f]{6}', co) else 'D3DED7'
+                                sides[edge] = Side(style={1:'thin', 2:'medium', 3:'dashed', 4:'dotted', 5:'thick', 6:'double'}.get(b.get('s'), 'thin'), color=co)
+                        if sides:
+                            cell.border = Border(**sides)
+                        # Reuse registered style IDs instead of hashing every font and
+                        # border for every cell. Copy the array: merging may modify it.
+                        style_cache[key] = copy(cell._style)
+                    else:
+                        cell._style = copy(style_cache[key])
         for r, dim in sheet.get('rowData', {}).items():
             # Empty row IDs should not enlarge the exported used range.
             if str(r) in sheet.get('cellData', {}) or dim.get('hd'):

@@ -21,3 +21,8 @@ test-results/
 *.tsv
 *.log
 node_modules/
+
+# The reproducible first-run snapshot is intentionally versioned. Runtime
+# databases and uploads above remain private and ignored.
+!starter_data/
+!starter_data/01.09.2026.xlsx

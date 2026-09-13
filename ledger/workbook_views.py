@@ -120,7 +120,8 @@ def finish(request, pk):
         if removals and not confirmed:
             return JsonResponse({'confirmation_required': True, 'token': token,
                 'removals': [{'sheet': p['sheet'], 'row': p['row']} for p in removals]})
-        count = apply_book(pk, revision, confirmed or token, actor(request))
+        count = apply_book(pk, revision, confirmed or token, actor(request),
+            prepared=(book.revision, projected, issues))
         return JsonResponse({'revision': revision, 'applied_revision': revision, 'count': count})
     except WorkbookConflict as exc:
         return JsonResponse({'error': ' '.join(exc.messages)}, status=409)

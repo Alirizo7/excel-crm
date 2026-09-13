@@ -1,6 +1,9 @@
-import { createUniver, LocaleType } from '@univerjs/presets';
+import { createUniver, LocaleType, CellValueType } from '@univerjs/presets';
 import { UniverSheetsCorePreset, SetRangeValuesMutation, InsertRowCommand, RemoveRowCommand,
-  InsertColCommand, RemoveColCommand, MoveRowsCommand, MoveColsCommand } from '@univerjs/preset-sheets-core';
+  InsertColCommand, RemoveColCommand, MoveRowsCommand, MoveColsCommand, SheetPasteShortKeyCommand,
+  SheetInterceptorService, AFTER_CELL_EDIT, SetRowDataMutation } from '@univerjs/preset-sheets-core';
+import { parseInputNumber, normalizePlainPaste } from './workbook-input.js';
+import { serializeWorkbook, insertRowFromTemplate } from './workbook-state.js';
 import ru from '@univerjs/preset-sheets-core/locales/ru-RU';
 import '@univerjs/preset-sheets-core/lib/index.css';
 
@@ -27,6 +30,7 @@ function showSavedState() {
 function mode() { return canFormulas && !!$('formula-mode')?.checked; }
 function key(sheet,r,c) { return `${sheet.id}:${sheet.rowData?.[r]?.custom?.rowId || r}:${c}`; }
 function active() { const ws=book.getActiveSheet(), a=ws.getSelection()?.getCurrentCell(); return {ws,r:a?.actualRow ?? 0,c:a?.actualColumn ?? 0}; }
+function textCell(ws,r,c) { return ws.getSheet().getCellStyle(r,c)?.n?.pattern === '@'; }
 function navigate(ws,range) {
   const row=range.getRow(), col=range.getColumn();
   if(ws.getSheet().getSnapshot().rowData?.[row]?.hd)ws.showRows(row,1);
@@ -34,22 +38,7 @@ function navigate(ws,range) {
 }
 function originalFormula(sheet,r,c,cell) { return cell?.f === '=NA()' && masked.has(key(sheet,r,c)) ? masked.get(key(sheet,r,c)) : cell?.f; }
 function serialize() {
-  const data=book.save();
-  for (const sid of data.sheetOrder) {
-    const sheet=data.sheets[sid], ws=book.getSheetBySheetId(sid);
-    for (const [r,row] of Object.entries(sheet.cellData || {})) {
-      sheet.rowData ??= {}; sheet.rowData[r] ??= {}; sheet.rowData[r].custom ??= {};
-      sheet.rowData[r].custom.rowId ??= crypto.randomUUID().replaceAll('-','');
-      for (const [c,cell] of Object.entries(row)) {
-        if (!cell) continue;
-        if (cell.si) { const f=ws.getRange(+r,+c).getFormulas()[0][0]; if(f)cell.f=f; delete cell.si; }
-        if(cell.f) cell.f=originalFormula(sheet,r,c,cell).replace(/^=\+/, '=');
-      }
-    }
-    // Persist generated row IDs into the in-memory workbook as well.
-    ws.setRowCustom(Object.fromEntries(Object.entries(sheet.rowData).map(([r,d])=>[r,d.custom])));
-  }
-  return data;
+  return serializeWorkbook(book,originalFormula);
 }
 function syncBar() {
   if(!ready || cellInputDirty || document.activeElement===$('cell') || document.activeElement===$('address')) return;
@@ -165,8 +154,25 @@ async function init() {
     for(const sheet of Object.values(state.data.sheets)) for(const [r,row] of Object.entries(sheet.cellData||{})) for(const [c,cell] of Object.entries(row)) {
       if(cell?.f && bareRange.test(cell.f)) { masked.set(key(sheet,r,c),cell.f);cell.f='=NA()'; }
     }
-    const {univerAPI}=createUniver({locale:LocaleType.RU_RU,locales:{[LocaleType.RU_RU]:ru},presets:[UniverSheetsCorePreset({container:'univer-container',header:false,toolbar:false,contextMenu:false,formulaBar:false,footer:false,disableAutoFocus:true,formula:{initialFormulaComputing:0}})]});
-    api=univerAPI;book=api.createWorkbook(state.data);
+    const {univer,univerAPI}=createUniver({locale:LocaleType.RU_RU,locales:{[LocaleType.RU_RU]:ru},presets:[UniverSheetsCorePreset({container:'univer-container',header:false,toolbar:false,contextMenu:false,formulaBar:false,footer:false,disableAutoFocus:true,formula:{initialFormulaComputing:0}})]});
+    api=univerAPI;book=api.createWorkbook(state.data);book.setNumfmtLocal('ru');
+    // Normalize raw grid edits before Univer's US number-format interceptor:
+    // otherwise 1,234 becomes 1234 before the value mutation can inspect it.
+    const sheetInterceptors=univer.__getInjector().get(SheetInterceptorService);
+    sheetInterceptors.writeCellInterceptor.intercept(AFTER_CELL_EDIT,{
+      priority:100,
+      handler:(value,context,next)=>{
+        if(value && !value.f && !value.p && value.t!==CellValueType.FORCE_STRING && context.worksheet.getCellStyle(context.row,context.col)?.n?.pattern!=='@'){
+          const number=parseInputNumber(value.v);
+          if(number!==null){
+            const percent=String(value.v).trim().endsWith('%');
+            value={...value,v:percent?String(value.v).trim().replace(/[ \u00a0\u202f]/g,'').replace(',','.'):number};
+            if(!percent)value.t=CellValueType.NUMBER;
+          }
+        }
+        return next(value);
+      }
+    });
     // Keep the worksheet names intact and offer a compact, localized sheet selector.
     const select=document.createElement('select');select.id='wb-sheet';select.setAttribute('aria-label',ui.sheet);
     for(const ws of book.getSheets()){const option=document.createElement('option');option.value=ws.getSheetId();option.textContent=ws.getSheetName();select.append(option);}
@@ -175,6 +181,10 @@ async function init() {
     api.addEvent(api.Event.BeforeCommandExecute,event=>{
       if(!ready || internal || event.options?.applyFormulaCalculationResult)return;
       if(noStructure.includes(event.id)){event.cancel=true;message(ui.structure);return;}
+      if(event.id===SheetPasteShortKeyCommand.id && !event.params.htmlContent && event.params.textContent){
+        const {ws,r,c}=active();
+        event.params.textContent=normalizePlainPaste(event.params.textContent,(row,col)=>textCell(ws,r+row,c+col));
+      }
       if(event.id!==SetRangeValuesMutation.id)return;
       if(finishing && !committingEdit){event.cancel=true;return;}
       const ws=book.getSheetBySheetId(event.params.subUnitId);
@@ -203,8 +213,8 @@ async function init() {
     syncBar();
     $('save')?.addEventListener('click',()=>finish());
     $('formula-mode')?.addEventListener('change',()=>{syncBar();if(mode())message(ui.newFormulaMode);});
-    $('undo').addEventListener('click',async()=>{internal=true;try{await api.undo();}finally{internal=false;}markDirty();});
-    $('redo').addEventListener('click',async()=>{internal=true;try{await api.redo();}finally{internal=false;}markDirty();});
+    $('undo').addEventListener('click',()=>{internal=true;try{book.undo();}finally{internal=false;}markDirty();});
+    $('redo').addEventListener('click',()=>{internal=true;try{book.redo();}finally{internal=false;}markDirty();});
     $('download').addEventListener('click',async()=>{if(cellInputDirty)$('cell-form').requestSubmit();if(!cellInputDirty && await save())location.href=root.dataset.download+(readonly&&new URLSearchParams(root.dataset.url.split('?')[1]).has('version')?'?version='+new URLSearchParams(root.dataset.url.split('?')[1]).get('version'):'');});
     $('recovery').addEventListener('click',()=>{internal=true;try{downloadBlob(new Blob([JSON.stringify({revision,data:serialize()})],{type:'application/json'}),`metalflow-recovery-v${revision}.json`);}finally{internal=false;}});
     $('errors-toggle').addEventListener('click',()=>{$('errors').hidden=!$('errors').hidden;browserErrors();});$('errors-close').addEventListener('click',()=>$('errors').hidden=true);
@@ -217,26 +227,23 @@ async function init() {
       if(value.startsWith('=')&&(!mode()||bareRange.test(value))){message(!mode()?ui.locked:ui.legacyRange);return;}
       masked.delete(key(ws.getSheet().getSnapshot(),r,c));
       const range=ws.getRange(r,c);
-      if(value==='')range.clearContent();else range.setValue(value);
+      if(value==='')range.clearContent();
+      else if(value.startsWith("'"))range.setValue({v:value.slice(1),t:CellValueType.FORCE_STRING,f:null,p:null});
+      else if(textCell(ws,r,c))range.setValue({v:value,t:CellValueType.FORCE_STRING,f:null,p:null});
+      else {
+        const number=parseInputNumber(value);
+        range.setValue(number===null?value:{v:number,t:CellValueType.NUMBER,f:null,p:null,
+          ...(value.trim().endsWith('%')?{s:{n:{pattern:'0.00%'}}}:{})});
+      }
       cellInputDirty=false;cellDraftTarget=null;$('cell').blur();syncBar();
     });
     $('add-row')?.addEventListener('click',async()=>{
       const {ws,r}=active();if(r<3||r>=11998){message(ui.selectRow);return;}
       internal=true;
       try {
-        const sheet=ws.getSheet().getSnapshot(),cols=sheet.columnCount,values={};
-        const formulas=ws.getRange(r,0,1,cols).getFormulas()[0];
-        for(let c=0;c<cols;c++) {
-          const source=sheet.cellData?.[r]?.[c];values[c]={};
-          if(source?.s)values[c].s=source.s;
-          if(source?.f || formulas[c])values[c].f=api.getFormula().moveFormulaRefOffset(source?.f || formulas[c],0,1);
-        }
-        const inserted=await api.executeCommand(InsertRowCommand.id,{unitId:book.getId(),subUnitId:ws.getSheetId(),direction:api.Enum.Direction.DOWN,
-          range:{startRow:r+1,endRow:r+1,startColumn:0,endColumn:cols-1},cellValue:{[r+1]:values}});
-        if(!inserted)throw new Error(ui.failed);
-        const target=ws.getRange(r+1,0,1,cols);
-        target.setValues([Array.from({length:cols},(_,c)=>values[c])]);
-        ws.setRowCustomMetadata(r+1,{rowId:crypto.randomUUID().replaceAll('-','')});
+        const target=await insertRowFromTemplate(api,book,ws,r,sheetInterceptors,
+          {insert:InsertRowCommand.id,values:SetRangeValuesMutation.id,rows:SetRowDataMutation.id});
+        if(!target)throw new Error(ui.failed);
         navigate(ws,target);message(ui.rowAdded);
       } catch(error){message(error.message || ui.failed);} finally{internal=false;markDirty();}
     });

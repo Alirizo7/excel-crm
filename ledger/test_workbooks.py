@@ -10,6 +10,7 @@ from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import skipUnless
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -215,6 +216,39 @@ class WorkbookTests(TestCase):
         self.assertEqual(self.finish().json()['count'], 0)
         self.assertEqual(Delivery.objects.count(), 1)
 
+    def test_finish_projects_only_once(self):
+        from .services.workbooks import project
+        self.edited('Приход-Расход', 4, 5, 900)
+        with patch('ledger.services.workbooks.project', wraps=project) as projection:
+            response = self.finish()
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(projection.call_count, 1)
+        self.assertEqual(Operation.objects.get(kind='income', source_row=4).amount, 900)
+
+    def test_prepared_projection_rejects_a_new_workbook_revision(self):
+        self.edited('Приход-Расход', 4, 5, 900)
+        _, _, token, projected, issues = preview_book(self.book)
+        revision = self.book.revision
+        self.edited('Приход-Расход', 4, 5, 1000)
+        with self.assertRaises(WorkbookConflict):
+            apply_book(self.book.pk, revision, token, 'tester', prepared=(revision, projected, issues))
+        with self.assertRaises(WorkbookConflict):
+            apply_book(self.book.pk, self.book.revision, token, 'tester', prepared=(revision, projected, issues))
+        self.assertNotEqual(Operation.objects.get(kind='income', source_row=4).amount, 900)
+
+    def test_prepared_projection_rechecks_crm_payment_under_lock(self):
+        self.edited('Кунлик', 5, 4, 1500)
+        _, _, token, projected, issues = preview_book(self.book)
+        debt = PartnerBalance.objects.get(name='Партнёр А')
+        record_payment(debt.pk, amount=Decimal('100'), date=date(2026,9,1), note='',
+            request_key=uuid.uuid4(), revision=debt.revision, actor='tester')
+        with self.assertRaises(WorkbookConflict):
+            apply_book(self.book.pk, self.book.revision, token, 'tester',
+                prepared=(self.book.revision, projected, issues))
+        debt.refresh_from_db()
+        self.assertEqual(debt.paid_amount, 100)
+        self.assertNotEqual(debt.balance, 1250)
+
     def test_finish_invalid_values_block_all_changes_and_keep_copy(self):
         self.edited('тура ака', 4, 6, 30000)
         self.edited('Приход-Расход', 4, 5, 'не число')
@@ -304,4 +338,16 @@ class OriginalWorkbookParityTests(TestCase):
             else:self.assertEqual(cell.get('v'),expected,(name,r+1,c+1))
         self.assertEqual(count,13104)
         self.assertEqual(len(formula_errors(data)),2)
+        # Verify the exported formulas and literal values, not only cached results.
+        exported = load_workbook(BytesIO(write_xlsx(data)), data_only=False)
+        source = load_workbook(BytesIO(original), data_only=False)
+        self.assertEqual(exported.sheetnames, source.sheetnames)
+        for source_sheet in source:
+            for row in source_sheet:
+                for cell in row:
+                    if cell.value is None: continue
+                    actual = exported[source_sheet.title][cell.coordinate]
+                    expected = '=' + cell.value[2:] if cell.data_type == 'f' and cell.value.startswith('=+') else cell.value
+                    self.assertEqual(actual.value, expected, (source_sheet.title, cell.coordinate))
+                    self.assertEqual(actual.number_format, cell.number_format, (source_sheet.title, cell.coordinate))
         self.assertEqual(hashlib.sha256(Path(os.environ['WORKBOOK_PATH']).read_bytes()).hexdigest(),checksum)
