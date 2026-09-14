@@ -1,4 +1,5 @@
 import hashlib
+from io import BytesIO
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -7,6 +8,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase, override_settings
+from django.urls import reverse
+from openpyxl import load_workbook
 
 from .models import (
     Delivery,
@@ -52,6 +55,18 @@ class StarterWorkspaceTests(TestCase):
         )
         user = get_user_model().objects.get(username='admin')
         self.assertTrue(user.check_password('admin123'))
+        self.assertTrue(self.client.login(username='admin', password='admin123'))
+        for kind in ('operations', 'deliveries', 'partners', 'report'):
+            response = self.client.get(reverse('export_download', args=[kind]))
+            self.assertEqual(response.status_code, 200)
+            exported = load_workbook(BytesIO(response.content), read_only=True)
+            self.assertTrue(exported.sheetnames)
+            exported.close()
+        response = self.client.get(reverse('workbook_download', args=[book.pk]))
+        self.assertEqual(response.status_code, 200)
+        exported = load_workbook(BytesIO(response.content), read_only=True)
+        self.assertEqual(len(exported.sheetnames), 13)
+        exported.close()
 
         user.first_name = 'Не перезаписывать'
         user.save(update_fields=['first_name'])

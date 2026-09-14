@@ -1,8 +1,8 @@
-import { createRequire } from 'node:module';
-const require = createRequire(import.meta.url);
-const { UniverSheetsNodeCorePreset } = require('@univerjs/preset-sheets-node-core');
-const { createUniver, LocaleType } = require('@univerjs/presets');
-const localeModule = require('@univerjs/preset-sheets-node-core/locales/en-US');
+import { UniverSheetsNodeCorePreset } from '@univerjs/preset-sheets-node-core';
+import { createUniver, LocaleType } from '@univerjs/presets';
+import localeDefault from '@univerjs/preset-sheets-node-core/locales/en-US';
+
+const localeModule = { default: localeDefault };
 
 // stdin/stdout protocol: financial data never goes into command-line arguments.
 let input = '';

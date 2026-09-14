@@ -1,8 +1,12 @@
 import copy
 from datetime import datetime
 from io import BytesIO
+from pathlib import Path
+from shutil import copyfile
+from tempfile import TemporaryDirectory
 
-from django.test import SimpleTestCase
+from django.conf import settings
+from django.test import SimpleTestCase, override_settings
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Border, Side, PatternFill, Alignment
 
@@ -10,6 +14,22 @@ from .services.workbook_files import read_xlsx, validate_snapshot, calculate, wr
 
 
 class FormulaEngineTests(SimpleTestCase):
+    def test_shipped_formula_runtime_works_without_node_modules(self):
+        workbook = Workbook()
+        workbook.active['A1'] = 4
+        workbook.active['A2'] = '=A1*3'
+        stream = BytesIO(); workbook.save(stream)
+        data = validate_snapshot(read_xlsx(stream.getvalue(), 'standalone.xlsx'))
+        bundle = Path(settings.BASE_DIR) / 'scripts/calculate-workbook.bundle.mjs'
+        self.assertTrue(bundle.is_file())
+        with TemporaryDirectory() as temp:
+            base = Path(temp)
+            (base / 'scripts').mkdir()
+            copyfile(bundle, base / 'scripts/calculate-workbook.bundle.mjs')
+            with override_settings(BASE_DIR=base):
+                result = calculate(data)
+        self.assertEqual(result['sheets']['sheet-0']['cellData']['1']['0']['v'], 12)
+
     def test_supported_functions_cross_sheet_errors_and_recalculation(self):
         workbook = Workbook()
         ws = workbook.active; ws.title = 'Ввод'

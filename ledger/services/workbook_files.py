@@ -112,7 +112,9 @@ def node_binary():
 
 def calculate(data):
     try:
-        completed = subprocess.run([node_binary(), str(settings.BASE_DIR/'scripts/calculate-workbook.mjs')],
+        bundled = settings.BASE_DIR/'scripts/calculate-workbook.bundle.mjs'
+        script = bundled if bundled.is_file() else settings.BASE_DIR/'scripts/calculate-workbook.mjs'
+        completed = subprocess.run([node_binary(), str(script)],
             input=json.dumps(data, ensure_ascii=False, allow_nan=False), text=True, capture_output=True,
             cwd=settings.BASE_DIR, timeout=30, check=True)
         return json.loads(completed.stdout)

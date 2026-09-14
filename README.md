@@ -4,7 +4,7 @@
 
 ## Быстрый запуск
 
-Требуется Python 3.10+, Node.js 22+ и pnpm 10 для рабочего редактора.
+Требуется Python 3.10+ и Node.js 22+. Готовые клиентский и серверный модули таблицы уже включены в репозиторий. pnpm 10 нужен только для их пересборки при разработке.
 
 ```bash
 git clone https://github.com/Alirizo7/excel-crm.git
@@ -12,8 +12,6 @@ cd excel-crm
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-pnpm install --frozen-lockfile
-pnpm build
 python manage.py migrate
 python manage.py bootstrap_workspace
 python manage.py runserver 127.0.0.1:8765
@@ -206,7 +204,7 @@ ledger/test_i18n.py          переключение языка и обратн
 
 Выгрузка рабочей книги содержит формулы, оформление и проверенные результаты расчётов. Её можно использовать в Excel и в обычном импорте как новый снимок. Импорт нового снимка использует существующую проверку дубликатов и политику сохранения оплат. При конфликте вкладок или сбое сети можно скачать JSON с несохранёнными правками для восстановления администратором. Другой вкладке не разрешается молча перезаписывать сохранённую версию.
 
-Серверу нужны Node и установленные зависимости даже при готовом браузерном bundle. При необходимости задайте `WORKBOOK_NODE=/absolute/path/to/node`. После изменения frontend выполните `pnpm build`; скомпилированные файлы находятся в `static/workbook/` и поставляются вместе с проектом. Никакие данные книги не отправляются на внешние сервисы. Атрибуции библиотек: `static/workbook/workbook.js.LEGAL.txt`.
+Серверу нужен Node.js 22+, но пакеты `node_modules` для обычного запуска не нужны: автономный движок формул находится в `scripts/calculate-workbook.bundle.mjs`. При необходимости задайте `WORKBOOK_NODE=/absolute/path/to/node`. После изменения frontend или движка выполните `pnpm install --frozen-lockfile` и `pnpm build`; готовые файлы поставляются вместе с проектом. Никакие данные книги не отправляются на внешние сервисы. Атрибуции библиотек: `static/workbook/workbook.js.LEGAL.txt` и `scripts/calculate-workbook.bundle.mjs.LEGAL.txt`.
 
 Проверки:
 
