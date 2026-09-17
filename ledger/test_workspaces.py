@@ -28,20 +28,85 @@ class WorkspaceIsolationTests(TestCase):
         client.force_login(user)
         return user, workspace, client
 
-    def test_registration_creates_an_empty_private_company(self):
-        response = self.client.post(reverse('register'), {
-            'company_name': '  Новая   компания  ',
-            'username': 'new-owner',
-            'password1': 'Safe-password-4782',
-            'password2': 'Safe-password-4782',
+    def test_admin_creates_company_with_owner_login_and_password(self):
+        self.client.force_login(get_user_model().objects.get(username='admin'))
+        response = self.client.post(reverse('admin:ledger_workspace_add'), {
+            'name': 'Новая компания',
+            'is_active': 'on',
+            'owner_username': 'new-owner',
+            'owner_password': 'Client-password-4782',
+            '_save': 'Сохранить',
         })
-        self.assertRedirects(response, reverse('imports'))
+        self.assertEqual(response.status_code, 302)
         user = get_user_model().objects.get(username='new-owner')
         membership = WorkspaceMembership.objects.select_related('workspace').get(user=user)
         self.assertEqual(membership.workspace.name, 'Новая компания')
+        self.assertTrue(membership.workspace.is_active)
+        self.assertTrue(user.check_password('Client-password-4782'))
         self.assertFalse(ImportBatch.objects.filter(workspace=membership.workspace).exists())
-        self.assertRedirects(self.client.get(reverse('home')), reverse('imports'))
-        self.assertContains(self.client.get(reverse('imports')), 'Загрузите ваш рабочий Excel один раз')
+
+        change_list = reverse('admin:ledger_workspace_changelist')
+        self.assertContains(self.client.get(change_list), 'Приостановить выбранные компании')
+        self.client.post(change_list, {
+            'action': 'suspend_companies',
+            '_selected_action': membership.workspace.pk,
+            'index': '0',
+        })
+        membership.workspace.refresh_from_db()
+        self.assertFalse(membership.workspace.is_active)
+        self.client.post(change_list, {
+            'action': 'activate_companies',
+            '_selected_action': membership.workspace.pk,
+            'index': '0',
+        })
+        membership.workspace.refresh_from_db()
+        self.assertTrue(membership.workspace.is_active)
+
+        client = Client()
+        response = client.post(reverse('login'), {
+            'username': 'new-owner', 'password': 'Client-password-4782',
+        })
+        self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
+        self.assertRedirects(client.get(reverse('home')), reverse('imports'))
+        self.assertContains(client.get(reverse('imports')), 'Загрузите ваш рабочий Excel один раз')
+
+    def test_superuser_keeps_admin_access_when_default_company_is_suspended(self):
+        admin_user = get_user_model().objects.get(username='admin')
+        membership = WorkspaceMembership.objects.get(user=admin_user)
+        membership.workspace.is_active = False
+        membership.workspace.save(update_fields=['is_active'])
+        self.client.force_login(admin_user)
+        self.assertEqual(self.client.get(reverse('admin:index')).status_code, 200)
+
+    def test_public_registration_is_not_available(self):
+        response = self.client.get('/register/')
+        self.assertRedirects(response, reverse('login') + '?next=/register/')
+        self.assertNotContains(self.client.get(reverse('login')), 'Создать компанию')
+
+    def test_suspended_company_loses_access_and_can_be_reactivated(self):
+        _, workspace, client = self.make_company('suspended-owner', 'Компания без оплаты')
+        self.assertEqual(client.get(reverse('operations')).status_code, 200)
+
+        workspace.is_active = False
+        workspace.save(update_fields=['is_active'])
+        self.assertRedirects(client.get(reverse('operations')), reverse('company_suspended'))
+        self.assertContains(client.get(reverse('company_suspended')), 'Доступ компании приостановлен')
+
+        fresh_client = Client()
+        response = fresh_client.post(reverse('login'), {
+            'username': 'suspended-owner', 'password': 'safe-password-4782',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Доступ компании временно приостановлен')
+        self.assertNotIn('_auth_user_id', fresh_client.session)
+
+        workspace.is_active = True
+        workspace.save(update_fields=['is_active'])
+        self.assertEqual(client.get(reverse('operations')).status_code, 200)
+        response = fresh_client.post(reverse('login'), {
+            'username': 'suspended-owner', 'password': 'safe-password-4782',
+        })
+        self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
 
     def test_user_created_outside_registration_gets_a_separate_company(self):
         first = Workspace.objects.order_by('pk').first()

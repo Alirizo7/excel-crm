@@ -4,7 +4,6 @@ from decimal import Decimal
 from pathlib import Path
 
 from django.contrib import messages
-from django.contrib.auth import login
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Sum, Q
@@ -15,7 +14,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils.translation import gettext
 
-from .forms import DateFilters, DeliveryForm, ImportForm, OperationForm, RevisionForm, WorkspaceRegistrationForm
+from .forms import DateFilters, DeliveryForm, ImportForm, OperationForm, RevisionForm
 from .models import Activity, Delivery, ImportBatch, Operation, PartnerBalance, SourceSheet, DebtPayment
 from .i18n import localize_system_text
 from .services.exporting import make_export
@@ -31,16 +30,12 @@ def home(request):
     return redirect('imports')
 
 
-def register(request):
-    if request.user.is_authenticated:
+def company_suspended(request):
+    if request.workspace.is_active or request.user.is_superuser:
         return redirect('home')
-    form = WorkspaceRegistrationForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        user = form.save()
-        login(request, user)
-        messages.success(request, gettext_noop('Рабочее пространство создано. Загрузите исходный Excel, чтобы начать работу.'))
-        return redirect('imports')
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'registration/company_suspended.html', {
+        'title': gettext_noop('Доступ приостановлен'),
+    })
 
 
 def filtered(request, model, include_deleted=False):

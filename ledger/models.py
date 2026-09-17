@@ -9,6 +9,7 @@ from django.utils import timezone
 class Workspace(models.Model):
     name = models.CharField(_('Название компании'), max_length=180)
     key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    is_active = models.BooleanField(_('Доступ активен'), default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

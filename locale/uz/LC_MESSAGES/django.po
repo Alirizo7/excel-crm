@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MetalFlow\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 13:29+0500\n"
+"POT-Creation-Date: 2026-09-17 13:45+0500\n"
 "PO-Revision-Date: 2026-09-07 21:15+0500\n"
 "Last-Translator: MetalFlow\n"
 "Language-Team: Uzbek\n"
@@ -115,26 +115,14 @@ msgstr "Foydalanuvchi nomi va parolni tekshiring. Katta-kichik harflarga e’tib
 msgid "Эта учётная запись отключена."
 msgstr "Bu hisob o‘chirilgan."
 
+msgid "Доступ компании временно приостановлен. Обратитесь к администратору."
+msgstr "Kompaniya kirishi vaqtincha to‘xtatilgan. Administratorga murojaat qiling."
+
 msgid "Имя пользователя"
 msgstr "Foydalanuvchi nomi"
 
 msgid "Пароль"
 msgstr "Parol"
-
-msgid "Название компании"
-msgstr "Kompaniya nomi"
-
-msgid "До 150 символов. Можно использовать буквы, цифры и @/./+/-/_."
-msgstr "150 ta belgigacha. Harflar, raqamlar va @/./+/-/_ belgilaridan foydalanish mumkin."
-
-msgid "Не менее 8 символов. Не используйте слишком простой пароль или название компании."
-msgstr "Kamida 8 ta belgi. Juda oddiy parol yoki kompaniya nomidan foydalanmang."
-
-msgid "Повторите пароль"
-msgstr "Parolni takrorlang"
-
-msgid "Введите тот же пароль ещё раз."
-msgstr "Xuddi shu parolni yana bir marta kiriting."
 
 msgid "Файл Excel"
 msgstr "Excel fayli"
@@ -234,6 +222,12 @@ msgstr "%(count)s ta pul operatsiyasida sana yo‘q. Ular umumiy jami summaga ki
 #, python-format
 msgid "Строка %(row)s: %(error)s"
 msgstr "%(row)s-qator: %(error)s"
+
+msgid "Название компании"
+msgstr "Kompaniya nomi"
+
+msgid "Доступ активен"
+msgstr "Kirish faol"
 
 msgid "Владелец"
 msgstr "Egasi"
@@ -511,8 +505,9 @@ msgstr "mln"
 msgid "тыс."
 msgstr "ming"
 
-msgid "Рабочее пространство создано. Загрузите исходный Excel, чтобы начать работу."
-msgstr "Ish maydoni yaratildi. Ishni boshlash uchun asosiy Excel faylini yuklang."
+#| msgid "Запись восстановлена"
+msgid "Доступ приостановлен"
+msgstr "Kirish to‘xtatilgan"
 
 msgid "Обзор"
 msgstr "Umumiy ko‘rinish"
@@ -1387,6 +1382,16 @@ msgstr "Natija yo‘q"
 msgid "Ничего не найдено."
 msgstr "Hech narsa topilmadi."
 
+#| msgid "Создать компанию · MetalFlow"
+msgid "Доступ приостановлен · MetalFlow"
+msgstr "Kirish to‘xtatilgan · MetalFlow"
+
+msgid "Доступ компании приостановлен"
+msgstr "Kompaniya kirishi to‘xtatilgan"
+
+msgid "Обратитесь к администратору для восстановления доступа. Все ваши данные сохранены."
+msgstr "Kirishni tiklash uchun administratorga murojaat qiling. Barcha ma’lumotlaringiz saqlangan."
+
 msgid "Вход · MetalFlow"
 msgstr "Kirish · MetalFlow"
 
@@ -1396,38 +1401,53 @@ msgstr "KOMPANIYA HISOBI BIR JOYDA"
 msgid "Добро пожаловать"
 msgstr "Xush kelibsiz"
 
-msgid "Войдите, чтобы работать с деньгами, поставками и долгами."
-msgstr "Pul, yetkazib berishlar va qarzlar bilan ishlash uchun tizimga kiring."
+msgid "Введите логин и пароль, выданные администратором."
+msgstr "Administrator bergan login va parolni kiriting."
 
 msgid "Войти →"
 msgstr "Kirish →"
 
-msgid "Впервые в MetalFlow?"
-msgstr "MetalFlow’dan birinchi marta foydalanyapsizmi?"
+#~ msgid "До 150 символов. Можно использовать буквы, цифры и @/./+/-/_."
+#~ msgstr "150 ta belgigacha. Harflar, raqamlar va @/./+/-/_ belgilaridan foydalanish mumkin."
 
-msgid "Создать компанию"
-msgstr "Kompaniya yaratish"
+#~ msgid "Не менее 8 символов. Не используйте слишком простой пароль или название компании."
+#~ msgstr "Kamida 8 ta belgi. Juda oddiy parol yoki kompaniya nomidan foydalanmang."
 
-msgid "Создать компанию · MetalFlow"
-msgstr "Kompaniya yaratish · MetalFlow"
+#~ msgid "Повторите пароль"
+#~ msgstr "Parolni takrorlang"
 
-msgid "НОВОЕ РАБОЧЕЕ ПРОСТРАНСТВО"
-msgstr "YANGI ISH MAYDONI"
+#~ msgid "Введите тот же пароль ещё раз."
+#~ msgstr "Xuddi shu parolni yana bir marta kiriting."
 
-msgid "Создайте компанию"
-msgstr "Kompaniya yarating"
+#~ msgid "Рабочее пространство создано. Загрузите исходный Excel, чтобы начать работу."
+#~ msgstr "Ish maydoni yaratildi. Ishni boshlash uchun asosiy Excel faylini yuklang."
 
-msgid "Укажите данные для входа. После регистрации вы загрузите свой Excel и продолжите работу в CRM."
-msgstr "Kirish ma’lumotlarini kiriting. Ro‘yxatdan o‘tgach, Excel faylingizni yuklab, CRM tizimida ishlashni davom ettirasiz."
+#~ msgid "Войдите, чтобы работать с деньгами, поставками и долгами."
+#~ msgstr "Pul, yetkazib berishlar va qarzlar bilan ishlash uchun tizimga kiring."
 
-msgid "Создать и продолжить →"
-msgstr "Yaratish va davom etish →"
+#~ msgid "Впервые в MetalFlow?"
+#~ msgstr "MetalFlow’dan birinchi marta foydalanyapsizmi?"
 
-msgid "Уже есть аккаунт?"
-msgstr "Akkauntingiz bormi?"
+#~ msgid "Создать компанию"
+#~ msgstr "Kompaniya yaratish"
 
-msgid "Войти"
-msgstr "Kirish"
+#~ msgid "НОВОЕ РАБОЧЕЕ ПРОСТРАНСТВО"
+#~ msgstr "YANGI ISH MAYDONI"
+
+#~ msgid "Создайте компанию"
+#~ msgstr "Kompaniya yarating"
+
+#~ msgid "Укажите данные для входа. После регистрации вы загрузите свой Excel и продолжите работу в CRM."
+#~ msgstr "Kirish ma’lumotlarini kiriting. Ro‘yxatdan o‘tgach, Excel faylingizni yuklab, CRM tizimida ishlashni davom ettirasiz."
+
+#~ msgid "Создать и продолжить →"
+#~ msgstr "Yaratish va davom etish →"
+
+#~ msgid "Уже есть аккаунт?"
+#~ msgstr "Akkauntingiz bormi?"
+
+#~ msgid "Войти"
+#~ msgstr "Kirish"
 
 #~ msgid "Итоги"
 #~ msgstr "Natijalar"
