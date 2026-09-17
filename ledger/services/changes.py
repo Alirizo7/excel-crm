@@ -9,23 +9,29 @@ from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_noop
 
-from ledger.models import Activity, Counterparty, RecordChange, WorkspaceState
+from ledger.models import Activity, Counterparty, RecordChange, WorkspaceState, Workspace
+
+
+def resolved_workspace(workspace=None):
+    return workspace or Workspace.objects.order_by('pk').first()
 
 
 @contextmanager
-def workspace_transaction():
+def workspace_transaction(workspace=None):
+    workspace = resolved_workspace(workspace)
     with transaction.atomic():
         # First query is a write: obtains the SQLite writer lock before reading
         # a balance. PostgreSQL also locks this row until the transaction ends.
-        if not WorkspaceState.objects.filter(pk=1).update(revision=F('revision') + 1):
-            raise RuntimeError('WorkspaceState is missing. Run migrations.')
+        state, _ = WorkspaceState.objects.get_or_create(workspace=workspace)
+        WorkspaceState.objects.filter(pk=state.pk).update(revision=F('revision') + 1)
         yield
 
 
-def partner_for(name):
+def partner_for(name, workspace=None):
+    workspace = resolved_workspace(workspace)
     name = ' '.join(name.split())
     key = unicodedata.normalize('NFKC', name).casefold()
-    return Counterparty.objects.get_or_create(key=key, defaults={'name': name})[0]
+    return Counterparty.objects.get_or_create(workspace=workspace, key=key, defaults={'name': name})[0]
 
 
 def snapshot(record):
@@ -46,11 +52,11 @@ def check_revision(record, revision):
 
 
 def log_change(record, kind, before, action, actor):
-    RecordChange.objects.create(kind=kind, record_id=record.pk, before=before, after=snapshot(record), action=action, actor=actor)
+    RecordChange.objects.create(workspace=record.workspace, kind=kind, record_id=record.pk, before=before, after=snapshot(record), action=action, actor=actor)
     title = {'edit': gettext_noop('Запись изменена'), 'create': gettext_noop('Запись добавлена'),
              'delete': gettext_noop('Запись удалена из учёта'), 'restore': gettext_noop('Запись восстановлена'),
              'payment': gettext_noop('Погашение долга'), 'cancel_payment': gettext_noop('Погашение отменено')}[action]
-    Activity.objects.create(title=title, detail=str(getattr(record, 'description', None) or getattr(record, 'name', None) or getattr(record, 'vehicle', '')), kind=action)
+    Activity.objects.create(workspace=record.workspace, title=title, detail=str(getattr(record, 'description', None) or getattr(record, 'name', None) or getattr(record, 'vehicle', '')), kind=action)
 
 
 def changed(record):
@@ -72,7 +78,7 @@ def set_record_active(record, kind, active, revision, actor):
     log_change(record, kind, before, 'restore' if active else 'delete', actor)
 
 
-def change_history(kind, record_id):
+def change_history(kind, record_id, workspace=None):
     labels = {'date': gettext('Дата'), 'kind': gettext('Тип операции'), 'amount': gettext('Сумма, UZS'),
               'description': gettext('Назначение платежа'), 'category': gettext('Категория'), 'partner': gettext('Контрагент'),
               'direction': gettext('Направление'), 'vehicle': gettext('Номер машины / описание'),
@@ -89,7 +95,10 @@ def change_history(kind, record_id):
         if field == 'active':
             return gettext('Да') if data else gettext('Нет')
         return choices.get(data, data) if field in ('kind', 'direction') else data
-    changes = list(RecordChange.objects.filter(kind=kind, record_id=record_id)[:50])
+    query = RecordChange.objects.filter(kind=kind, record_id=record_id)
+    if workspace is not None:
+        query = query.filter(workspace=workspace)
+    changes = list(query[:50])
     for item in changes:
         item.label = actions.get(item.action, item.action)
         item.deltas = [{'label': label, 'old': value(field, item.before.get(field)), 'new': value(field, item.after.get(field))}

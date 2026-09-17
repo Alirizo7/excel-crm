@@ -4,6 +4,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from django.contrib import messages
+from django.contrib.auth import login
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Sum, Q
@@ -14,7 +15,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils.translation import gettext
 
-from .forms import DateFilters, DeliveryForm, ImportForm, OperationForm, RevisionForm
+from .forms import DateFilters, DeliveryForm, ImportForm, OperationForm, RevisionForm, WorkspaceRegistrationForm
 from .models import Activity, Delivery, ImportBatch, Operation, PartnerBalance, SourceSheet, DebtPayment
 from .i18n import localize_system_text
 from .services.exporting import make_export
@@ -24,10 +25,28 @@ from .services.debts import debt_rows, debt_stats
 from .debt_views import actor
 
 
+def home(request):
+    if ImportBatch.objects.filter(workspace=request.workspace, status='imported').exists():
+        return redirect('dashboard')
+    return redirect('imports')
+
+
+def register(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    form = WorkspaceRegistrationForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = form.save()
+        login(request, user)
+        messages.success(request, gettext_noop('Рабочее пространство создано. Загрузите исходный Excel, чтобы начать работу.'))
+        return redirect('imports')
+    return render(request, 'registration/register.html', {'form': form})
+
+
 def filtered(request, model, include_deleted=False):
-    records = model.objects.filter(active=True)
+    records = model.objects.filter(workspace=request.workspace, active=True)
     if include_deleted and request.GET.get('status') == 'deleted':
-        records = model.objects.filter(deleted_at__isnull=False, archived_at=None)
+        records = model.objects.filter(workspace=request.workspace, deleted_at__isnull=False, archived_at=None)
     filters = DateFilters(request.GET)
     valid = filters.is_valid()
     if valid:
@@ -68,11 +87,11 @@ def dashboard(request):
         income=Sum('amount', filter=Q(kind='income')), expense=Sum('amount', filter=Q(kind='expense'))).order_by('month'))[-12:]
     chart = [{'label': x['month'].strftime('%m.%Y'), 'income': float(x['income'] or 0), 'expense': float(x['expense'] or 0)} for x in monthly]
     stats = totals(operations)
-    return render(request, 'ledger/dashboard.html', {'nav': 'dashboard', 'title': gettext_noop('Итоги'), 'stats': stats,
+    return render(request, 'ledger/dashboard.html', {'nav': 'dashboard', 'title': gettext_noop('Обзор'), 'stats': stats,
         'filters': filters,
         'shipment_weight': deliveries.filter(direction='out').aggregate(v=Sum('clean_weight'))['v'] or 0,
         'chart_data': chart,
-        'debt_stats': debt_stats(debt_rows().filter(active=True)),
+        'debt_stats': debt_stats(debt_rows(request.workspace).filter(active=True)),
         'undated': operations.filter(date=None).count()})
 
 
@@ -80,7 +99,7 @@ def operations(request):
     records, filters = filtered(request, Operation, include_deleted=True)
     return render(request, 'ledger/operations.html', {'nav': 'operations', 'title': gettext_noop('Денежные операции'),
         'page': Paginator(records, 25).get_page(request.GET.get('page')), 'stats': totals(records), 'filters': filters,
-        'categories': Operation.objects.filter(active=True).values_list('category', flat=True).distinct().order_by('category')})
+        'categories': Operation.objects.filter(workspace=request.workspace, active=True).values_list('category', flat=True).distinct().order_by('category')})
 
 
 def deliveries(request):
@@ -98,11 +117,11 @@ def record_form(request, kind, pk=None):
     if kind not in ('operations', 'deliveries'):
         raise Http404
     model, form_cls = (Operation, OperationForm) if kind == 'operations' else (Delivery, DeliveryForm)
-    obj = get_object_or_404(model, pk=pk, active=True) if pk else None
+    obj = get_object_or_404(model, workspace=request.workspace, pk=pk, active=True) if pk else None
     form = form_cls(instance=obj, initial={} if pk else {'date': date.today()})
     if request.method == 'POST':
-        with workspace_transaction():
-            obj = get_object_or_404(model, pk=pk, active=True) if pk else model()
+        with workspace_transaction(request.workspace):
+            obj = get_object_or_404(model, workspace=request.workspace, pk=pk, active=True) if pk else model(workspace=request.workspace)
             before = snapshot(obj) if pk else {}
             form = form_cls(request.POST, instance=obj)
             if form.is_valid():
@@ -125,13 +144,13 @@ def record_detail(request, kind, pk):
     if kind not in ('operations', 'deliveries'):
         raise Http404
     model = Operation if kind == 'operations' else Delivery
-    obj = get_object_or_404(model, pk=pk)
+    obj = get_object_or_404(model, workspace=request.workspace, pk=pk)
     fields = [(f.verbose_name, f.value_from_object(obj)) for f in model._meta.fields if f.name in
               (['date', 'kind', 'amount', 'description', 'category', 'partner'] if kind=='operations' else
                ['date', 'direction', 'partner', 'vehicle', 'gross', 'tare', 'discount', 'price', 'notes'])]
     source = SourceSheet.objects.filter(batch=obj.batch, name=obj.source_sheet).first() if obj.batch_id else None
     return render(request, 'ledger/record_detail.html', {'nav':kind, 'title':gettext_noop('Карточка операции') if kind=='operations' else gettext_noop('Карточка поставки'),
-        'item':obj, 'kind':kind, 'fields':fields, 'source':source, 'changes':change_history(kind, pk),
+        'item':obj, 'kind':kind, 'fields':fields, 'source':source, 'changes':change_history(kind, pk, request.workspace),
         'can_restore': bool(obj.deleted_at) and not obj.archived_at})
 
 
@@ -144,8 +163,8 @@ def record_delete(request, kind, pk, restore=False):
     if not form.is_valid():
         messages.error(request, gettext('Обновите страницу и повторите действие.'))
         return redirect('record_detail', kind=kind, pk=pk)
-    with workspace_transaction():
-        obj = get_object_or_404(model.objects.select_related('batch'), pk=pk, active=not restore)
+    with workspace_transaction(request.workspace):
+        obj = get_object_or_404(model.objects.select_related('batch'), workspace=request.workspace, pk=pk, active=not restore)
         try:
             set_record_active(obj, kind, restore, form.cleaned_data['revision'], actor(request))
         except ValidationError as exc:
@@ -163,45 +182,38 @@ def imports(request):
             form.add_error('file', gettext('Максимальный размер файла — 10 МБ.'))
         else:
             try:
-                batch, created = stage_import(upload.read(), upload.name, form.cleaned_data['report_date'])
+                batch, created = stage_import(upload.read(), upload.name, form.cleaned_data['report_date'], workspace=request.workspace)
                 if not created:
                     messages.info(request, gettext_noop('Этот файл уже загружен. Открыта существующая проверка; дубликат не создан.'))
                 return redirect('import_detail', pk=batch.pk)
             except ValidationError as exc:
                 form.add_error('file', ValidationError([localize_system_text(message) for message in exc.messages]))
-    return render(request, 'ledger/imports.html', {'nav':'workbooks', 'title':gettext_noop('Загрузить Excel'), 'form':form,
-                                                 'batches':ImportBatch.objects.all()[:15]})
+    return render(request, 'ledger/imports.html', {'nav':'imports', 'title':gettext_noop('Загрузить Excel'), 'form':form,
+                                                 'batches':ImportBatch.objects.filter(workspace=request.workspace)[:15]})
 
 
 def import_detail(request, pk):
-    batch = get_object_or_404(ImportBatch, pk=pk)
+    batch = get_object_or_404(ImportBatch, workspace=request.workspace, pk=pk)
     issues = batch.issues
-    return render(request, 'ledger/import_detail.html', {'nav':'workbooks', 'title':gettext_noop('Проверка файла'), 'batch':batch,
+    return render(request, 'ledger/import_detail.html', {'nav':'imports', 'title':gettext_noop('Проверка файла'), 'batch':batch,
         'issues': Paginator(issues, 25).get_page(request.GET.get('page')),
         'preview_operations': batch.payload.get('operations', [])[:5],
-        'impact': import_impact() if batch.format == 'legacy' else {},
-        'active_legacy':ImportBatch.objects.filter(format='legacy', status='imported').exclude(pk=pk).first()})
+        'impact': import_impact(request.workspace) if batch.format == 'legacy' else {},
+        'active_legacy':ImportBatch.objects.filter(workspace=request.workspace, format='legacy', status='imported').exclude(pk=pk).first()})
 
 
 @require_POST
 def import_confirm(request, pk):
-    get_object_or_404(ImportBatch, pk=pk)
+    batch = get_object_or_404(ImportBatch, workspace=request.workspace, pk=pk)
     try:
         commit_import(pk, debt_policy=request.POST.get('debt_policy') or None,
-                      replace_local_changes=request.POST.get('replace_local_changes') == 'on')
+                      replace_local_changes=request.POST.get('replace_local_changes') == 'on', workspace=request.workspace)
         messages.success(request, gettext_noop('Импорт завершён. Данные доступны в учёте и отчётах.'))
     except ValidationError as exc:
         messages.error(request, ' '.join(localize_system_text(message) for message in exc.messages))
         return redirect('import_detail', pk=pk)
-    from .services.workbooks import create_book
-    batch = ImportBatch.objects.get(pk=pk)
     if batch.format == 'legacy':
-        try:
-            book = create_book(pk, actor(request))
-        except ValidationError as exc:
-            messages.error(request, ' '.join(exc.messages))
-            return redirect('workbooks')
-        return redirect('workbook_detail', pk=book.pk)
+        return redirect('dashboard')
     return redirect('operations' if batch.format == 'operations' else 'deliveries')
 
 
@@ -210,7 +222,7 @@ def sheets(request):
 
 
 def sheet_detail(request, pk):
-    sheet = get_object_or_404(SourceSheet.objects.select_related('batch'), pk=pk)
+    sheet = get_object_or_404(SourceSheet.objects.select_related('batch'), batch__workspace=request.workspace, pk=pk)
     rows = sheet.rows
     q = request.GET.get('q', '').lower().strip()
     if q:
@@ -241,26 +253,26 @@ def export_download(request, kind):
     template = request.GET.get('template') == '1'
     if template and kind not in ('operations','deliveries'):
         raise Http404
-    batch = ImportBatch.objects.filter(format='legacy', status='imported').first()
-    payments = DebtPayment.objects.select_related('debt').all()
+    batch = ImportBatch.objects.filter(workspace=request.workspace, format='legacy', status='imported').first()
+    payments = DebtPayment.objects.filter(debt__workspace=request.workspace).select_related('debt')
     if filters.cleaned_data.get('start'):
         payments = payments.filter(date__gte=filters.cleaned_data['start'])
     if filters.cleaned_data.get('end'):
         payments = payments.filter(date__lte=filters.cleaned_data['end'])
-    data = make_export(kind, ops, dels, PartnerBalance.objects.filter(active=True), batch.issues if batch else [], template, payments=payments)
+    data = make_export(kind, ops, dels, PartnerBalance.objects.filter(workspace=request.workspace, active=True), batch.issues if batch else [], template, payments=payments)
     response = HttpResponse(data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="metalflow-{kind}-{"template" if template else date.today().isoformat()}.xlsx"'
     response['Cache-Control'] = 'no-store'
-    Activity.objects.create(title=gettext_noop('Шаблон скачан') if template else gettext_noop('Отчёт экспортирован'), detail={'operations':gettext_noop('Денежные операции'),'deliveries':gettext_noop('Поставки'),'partners':gettext_noop('Взаиморасчёты'),'report':gettext_noop('Полный отчёт')}[kind], kind='export')
+    Activity.objects.create(workspace=request.workspace, title=gettext_noop('Шаблон скачан') if template else gettext_noop('Отчёт экспортирован'), detail={'operations':gettext_noop('Денежные операции'),'deliveries':gettext_noop('Поставки'),'partners':gettext_noop('Взаиморасчёты'),'report':gettext_noop('Полный отчёт')}[kind], kind='export')
     return response
 
 
 def source_download(request, pk):
-    batch = get_object_or_404(ImportBatch, pk=pk)
+    batch = get_object_or_404(ImportBatch, workspace=request.workspace, pk=pk)
     if not batch.file or not Path(batch.file.path).exists():
         raise Http404('Исходный файл недоступен')
     return FileResponse(batch.file.open('rb'), as_attachment=True, filename=batch.filename)
 
 
 def help_page(request):
-    return redirect('workbooks')
+    return redirect('dashboard')

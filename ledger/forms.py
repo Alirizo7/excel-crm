@@ -1,9 +1,11 @@
 from django.utils.translation import gettext_noop
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from .models import Operation, Delivery, PartnerBalance
+from .models import Operation, Delivery, PartnerBalance, Workspace, WorkspaceMembership, WorkspaceState
 from django.utils import timezone
 from decimal import Decimal
 
@@ -18,6 +20,33 @@ class WorkspaceLoginForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = _('Имя пользователя')
         self.fields['password'].label = _('Пароль')
+
+
+class WorkspaceRegistrationForm(UserCreationForm):
+    company_name = forms.CharField(label=_('Название компании'), max_length=180)
+
+    class Meta(UserCreationForm.Meta):
+        model = get_user_model()
+        fields = ('company_name', 'username')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = _('Имя пользователя')
+        self.fields['username'].help_text = _('До 150 символов. Можно использовать буквы, цифры и @/./+/-/_.')
+        self.fields['password1'].label = _('Пароль')
+        self.fields['password1'].help_text = _('Не менее 8 символов. Не используйте слишком простой пароль или название компании.')
+        self.fields['password2'].label = _('Повторите пароль')
+        self.fields['password2'].help_text = _('Введите тот же пароль ещё раз.')
+
+    def save(self, commit=True):
+        if not commit:
+            return super().save(commit=False)
+        with transaction.atomic():
+            user = super().save(commit=True)
+            workspace = Workspace.objects.create(name=' '.join(self.cleaned_data['company_name'].split()))
+            WorkspaceMembership.objects.create(user=user, workspace=workspace, role=WorkspaceMembership.Role.OWNER)
+            WorkspaceState.objects.create(workspace=workspace)
+        return user
 
 
 class ImportForm(forms.Form):

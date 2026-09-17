@@ -23,7 +23,7 @@ from django.db import transaction
 from django.utils import timezone
 from openpyxl.utils import get_column_letter
 from ledger.models import Activity, Delivery, ImportBatch, Operation, PartnerBalance, SourceSheet
-from ledger.services.changes import workspace_transaction, partner_for
+from ledger.services.changes import workspace_transaction, partner_for, resolved_workspace
 
 MAX_BYTES = 10 * 1024 * 1024
 ROLES = {'тонн': gettext_noop('Объёмы и остатки'), 'Хитой': gettext_noop('Расчёты и распределение прибыли'),
@@ -166,7 +166,8 @@ def category(description):
     return gettext_noop('Прочее')
 
 
-def inspect_workbook(data, filename, report_date=None, skip_existing_ids=True):
+def inspect_workbook(data, filename, report_date=None, skip_existing_ids=True, workspace=None):
+    workspace = resolved_workspace(workspace)
     if len(data) > MAX_BYTES or not filename.lower().endswith('.xlsx'):
         raise ValidationError(gettext_noop('Выберите файл .xlsx размером не больше 10 МБ.'))
     try:
@@ -333,9 +334,9 @@ def inspect_workbook(data, filename, report_date=None, skip_existing_ids=True):
                               'notes': str(values[9] or ''), 'net': str(net), 'clean_weight': str(clean), 'amount': str(amount)}
                     model = Delivery
                 record.update(source_sheet=sheet.title, source_row=row)
-                obj = model(**record)
-                obj.full_clean(exclude=['uid', 'batch', 'source_row'], validate_unique=False, validate_constraints=False)
-                if skip_existing_ids and model.objects.filter(uid=uid).exists():
+                obj = model(workspace=workspace, **record)
+                obj.full_clean(exclude=['uid', 'batch', 'source_row', 'workspace'], validate_unique=False, validate_constraints=False)
+                if skip_existing_ids and model.objects.filter(workspace=workspace, uid=uid).exists():
                     issues.append({'level': 'info', 'sheet': sheet.title, 'cell': f'A{row}',
                                    'message': gettext_noop('ID уже существует. Строка пропущена; существующая запись не изменяется.')})
                 else:
@@ -357,14 +358,15 @@ def inspect_workbook(data, filename, report_date=None, skip_existing_ids=True):
             'balances': balances, 'sheets': sheets, 'issues': issues, 'summary': summary}
 
 
-def stage_import(data, filename, report_date=None):
+def stage_import(data, filename, report_date=None, workspace=None):
+    workspace = resolved_workspace(workspace)
     digest = hashlib.sha256(data).hexdigest()
-    existing = ImportBatch.objects.filter(sha256=digest).first()
+    existing = ImportBatch.objects.filter(workspace=workspace, sha256=digest).first()
     if existing:
         return existing, False
-    result = inspect_workbook(data, filename, report_date)
+    result = inspect_workbook(data, filename, report_date, workspace=workspace)
     with transaction.atomic():
-        batch = ImportBatch(filename=Path(filename).name[:255], sha256=digest, format=result['format'],
+        batch = ImportBatch(workspace=workspace, filename=Path(filename).name[:255], sha256=digest, format=result['format'],
                             report_date=result['report_date'], summary=result['summary'], issues=result['issues'],
                             payload={k: result[k] for k in ('operations', 'deliveries', 'balances')})
         batch.file.save(f'{uuid.uuid4().hex}.xlsx', ContentFile(data), save=False)
@@ -373,50 +375,53 @@ def stage_import(data, filename, report_date=None):
     return batch, True
 
 
-def import_impact():
-    edited = sum(model.objects.filter(batch__format='legacy', batch__status='imported', modified_at__isnull=False).count()
+def import_impact(workspace=None):
+    workspace = resolved_workspace(workspace)
+    edited = sum(model.objects.filter(workspace=workspace, batch__format='legacy', batch__status='imported', modified_at__isnull=False).count()
                  for model in (Operation, Delivery))
-    balances = PartnerBalance.objects.filter(batch__format='legacy', archived_at=None)
+    balances = PartnerBalance.objects.filter(workspace=workspace, batch__format='legacy', archived_at=None)
     return {'record_edits': edited, 'debt_edits': balances.filter(modified_at__isnull=False).count(),
             'has_debts': balances.exists()}
 
 
-@workspace_transaction()
-def commit_import(batch_id, *, debt_policy=None, replace_local_changes=False):
-    batch = ImportBatch.objects.select_for_update().get(pk=batch_id)
-    if batch.status != 'preview':
-        raise ValidationError(gettext_noop('Этот файл уже обработан. Повторный импорт не выполнен.'))
-    if batch.summary.get('errors'):
-        raise ValidationError(gettext_noop('Исправьте ошибки в файле и загрузите его заново. Частичный импорт отключён.'))
-    if batch.format == 'legacy':
-        impact = import_impact()
-        if debt_policy not in (None, 'keep', 'replace'):
-            raise ValidationError(gettext_noop('Выберите способ обновления долгов.'))
-        if impact['debt_edits'] and debt_policy is None:
-            raise ValidationError(gettext_noop('Есть изменения долгов или погашения. Выберите, сохранить текущие долги или принять остатки из новой книги.'))
-        debt_policy = debt_policy or 'replace'
-        if (impact['record_edits'] or (impact['debt_edits'] and debt_policy == 'replace')) and not replace_local_changes:
-            raise ValidationError(gettext_noop('Подтвердите замену изменений импортированных записей новым снимком.'))
-        previous = ImportBatch.objects.filter(format='legacy', status='imported')
-        for model in (Operation, Delivery):
-            model.objects.filter(batch__in=previous).update(active=False, archived_at=timezone.now())
-        if debt_policy == 'replace':
-            PartnerBalance.objects.filter(batch__format='legacy', archived_at=None).update(active=False, archived_at=timezone.now())
-        previous.update(status='superseded')
-    for name, model in [('operations', Operation), ('deliveries', Delivery), ('balances', PartnerBalance)]:
-        if name == 'balances' and debt_policy == 'keep':
-            continue
-        records = batch.payload.get(name, [])
-        if name == 'balances':
-            records = [dict(record, counterparty=partner_for(record['name'])) for record in records]
-        for start in range(0, len(records), 500):
-            # Recheck IDs at commit time: another preview may have been confirmed first.
-            portion = records[start:start+500]
-            existing = set(str(x) for x in model.objects.filter(uid__in=[r['uid'] for r in portion if r.get('uid')]).values_list('uid', flat=True))
-            model.objects.bulk_create([model(batch=batch, **record) for record in portion if record.get('uid') not in existing])
-    batch.status, batch.imported_at = 'imported', timezone.now()
-    if batch.format == 'legacy':
-        batch.summary = dict(batch.summary, debt_policy=debt_policy)
-    batch.save(update_fields=['status', 'imported_at', 'summary'])
-    Activity.objects.create(title=gettext_noop('Excel импортирован'), detail=batch.filename, kind='import')
-    return batch
+def commit_import(batch_id, *, debt_policy=None, replace_local_changes=False, workspace=None):
+    initial = ImportBatch.objects.get(pk=batch_id, **({'workspace': workspace} if workspace is not None else {}))
+    workspace = initial.workspace
+    with workspace_transaction(workspace):
+        batch = ImportBatch.objects.select_for_update().get(pk=batch_id, workspace=workspace)
+        if batch.status != 'preview':
+            raise ValidationError(gettext_noop('Этот файл уже обработан. Повторный импорт не выполнен.'))
+        if batch.summary.get('errors'):
+            raise ValidationError(gettext_noop('Исправьте ошибки в файле и загрузите его заново. Частичный импорт отключён.'))
+        if batch.format == 'legacy':
+            impact = import_impact(workspace)
+            if debt_policy not in (None, 'keep', 'replace'):
+                raise ValidationError(gettext_noop('Выберите способ обновления долгов.'))
+            if impact['debt_edits'] and debt_policy is None:
+                raise ValidationError(gettext_noop('Есть изменения долгов или погашения. Выберите, сохранить текущие долги или принять остатки из новой книги.'))
+            debt_policy = debt_policy or 'replace'
+            if (impact['record_edits'] or (impact['debt_edits'] and debt_policy == 'replace')) and not replace_local_changes:
+                raise ValidationError(gettext_noop('Подтвердите замену изменений импортированных записей новым снимком.'))
+            previous = ImportBatch.objects.filter(workspace=workspace, format='legacy', status='imported')
+            for model in (Operation, Delivery):
+                model.objects.filter(workspace=workspace, batch__in=previous).update(active=False, archived_at=timezone.now())
+            if debt_policy == 'replace':
+                PartnerBalance.objects.filter(workspace=workspace, batch__format='legacy', archived_at=None).update(active=False, archived_at=timezone.now())
+            previous.update(status='superseded')
+        for name, model in [('operations', Operation), ('deliveries', Delivery), ('balances', PartnerBalance)]:
+            if name == 'balances' and debt_policy == 'keep':
+                continue
+            records = batch.payload.get(name, [])
+            if name == 'balances':
+                records = [dict(record, counterparty=partner_for(record['name'], workspace)) for record in records]
+            for start in range(0, len(records), 500):
+                # Recheck IDs at commit time: another preview may have been confirmed first.
+                portion = records[start:start+500]
+                existing = set(str(x) for x in model.objects.filter(workspace=workspace, uid__in=[r['uid'] for r in portion if r.get('uid')]).values_list('uid', flat=True))
+                model.objects.bulk_create([model(workspace=workspace, batch=batch, **record) for record in portion if record.get('uid') not in existing])
+        batch.status, batch.imported_at = 'imported', timezone.now()
+        if batch.format == 'legacy':
+            batch.summary = dict(batch.summary, debt_policy=debt_policy)
+        batch.save(update_fields=['status', 'imported_at', 'summary'])
+        Activity.objects.create(workspace=workspace, title=gettext_noop('Excel импортирован'), detail=batch.filename, kind='import')
+        return batch

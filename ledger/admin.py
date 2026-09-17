@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Operation, Delivery, ImportBatch, SourceSheet, PartnerBalance, Activity, DebtPayment, Counterparty, RecordChange
+from .models import (Operation, Delivery, ImportBatch, SourceSheet, PartnerBalance, Activity,
+                     DebtPayment, Counterparty, RecordChange, Workspace, WorkspaceMembership)
 
 
 class AuditReadOnlyAdmin(admin.ModelAdmin):
@@ -15,17 +16,19 @@ class AuditReadOnlyAdmin(admin.ModelAdmin):
 
 @admin.register(Operation)
 class OperationAdmin(AuditReadOnlyAdmin):
-    list_display = ['date', 'description', 'kind', 'amount', 'active']
+    list_display = ['workspace', 'date', 'description', 'kind', 'amount', 'active']
     list_filter = ['kind', 'active']
     search_fields = ['description', 'partner']
 
 
 @admin.register(Delivery)
 class DeliveryAdmin(AuditReadOnlyAdmin):
-    list_display = ['date', 'vehicle', 'partner', 'direction', 'clean_weight', 'amount']
+    list_display = ['workspace', 'date', 'vehicle', 'partner', 'direction', 'clean_weight', 'amount']
     list_filter = ['direction', 'active']
 
 
 for model in (ImportBatch, SourceSheet, PartnerBalance, Activity, DebtPayment, Counterparty, RecordChange):
     admin.site.register(model, AuditReadOnlyAdmin)
+admin.site.register(Workspace)
+admin.site.register(WorkspaceMembership)
 admin.site.site_header = 'MetalFlow · Администрирование'

@@ -17,8 +17,6 @@ from .models import (
     Operation,
     PartnerBalance,
     SourceSheet,
-    WorkingWorkbook,
-    WorkbookVersion,
 )
 
 
@@ -39,15 +37,12 @@ class StarterWorkspaceTests(TestCase):
     def test_bootstrap_installs_exact_snapshot_once_and_keeps_existing_data(self):
         output = StringIO()
         call_command('bootstrap_workspace', stdout=output)
-        self.assertIn('Готовая база установлена', output.getvalue())
+        self.assertIn('Демо-данные установлены', output.getvalue())
         self.assertEqual(ImportBatch.objects.count(), 1)
         self.assertEqual(SourceSheet.objects.count(), 13)
         self.assertEqual(Operation.objects.count(), 1765)
         self.assertEqual(Delivery.objects.count(), 634)
         self.assertEqual(PartnerBalance.objects.count(), 46)
-        self.assertEqual(WorkbookVersion.objects.count(), 7)
-        book = WorkingWorkbook.objects.get()
-        self.assertEqual((book.revision, book.applied_revision), (7, 6))
         batch = ImportBatch.objects.get()
         self.assertEqual(
             hashlib.sha256(Path(batch.file.path).read_bytes()).hexdigest(),
@@ -62,12 +57,6 @@ class StarterWorkspaceTests(TestCase):
             exported = load_workbook(BytesIO(response.content), read_only=True)
             self.assertTrue(exported.sheetnames)
             exported.close()
-        response = self.client.get(reverse('workbook_download', args=[book.pk]))
-        self.assertEqual(response.status_code, 200)
-        exported = load_workbook(BytesIO(response.content), read_only=True)
-        self.assertEqual(len(exported.sheetnames), 13)
-        exported.close()
-
         user.first_name = 'Не перезаписывать'
         user.save(update_fields=['first_name'])
         output = StringIO()
@@ -76,7 +65,7 @@ class StarterWorkspaceTests(TestCase):
         user.refresh_from_db()
         self.assertEqual(user.first_name, 'Не перезаписывать')
         self.assertEqual(Operation.objects.count(), 1765)
-        self.assertEqual(WorkingWorkbook.objects.get().revision, 7)
+        self.assertEqual(ImportBatch.objects.count(), 1)
 
     def test_starter_assets_are_present_and_match_the_import(self):
         seed = Path(settings.BASE_DIR) / 'starter_data'

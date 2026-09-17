@@ -227,6 +227,8 @@ class DebtWorkflowTests(TestCase):
         self.client.logout()
         self.assertEqual(self.client.post(reverse('payment_new', args=[self.debt.pk]), {}).status_code, 302)
         user = get_user_model().objects.create_user('debt-tester')
+        from .models import Workspace, WorkspaceMembership
+        WorkspaceMembership.objects.create(user=user, workspace=Workspace.objects.order_by('pk').first())
         secure = Client(enforce_csrf_checks=True); secure.force_login(user)
         self.assertEqual(secure.post(reverse('payment_new', args=[self.debt.pk]), {}).status_code, 403)
         self.assertEqual(secure.post(reverse('debt_delete', args=[self.debt.pk]), {}).status_code, 403)

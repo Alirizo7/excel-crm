@@ -47,10 +47,11 @@ class InterfaceLanguageTests(TestCase):
         self.assertContains(self.client.get(reverse('record_detail', args=['operations', item.pk])), 'Металл')
         item.refresh_from_db()
         self.assertEqual(item.category, 'Прочее')
-        self.assertContains(self.client.get(reverse('exports'), follow=True), 'Natijalar')
+        self.assertContains(self.client.get(reverse('exports'), follow=True), 'Umumiy ko‘rinish')
         self.client.post(reverse('set_language'), {'language': 'ru', 'next': '/'})
-        self.assertContains(self.client.get('/'), '<html lang="ru">')
-        self.assertContains(self.client.get('/'), 'Таблица')
+        response = self.client.get('/', follow=True)
+        self.assertContains(response, '<html lang="ru">')
+        self.assertContains(response, 'Загрузить Excel')
 
     def test_uzbek_pages_and_saved_import_issues(self):
         batch, _ = stage_import(legacy_bytes(), '01.09.2026.xlsx')

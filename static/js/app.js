@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('[data-close-menu]')?.addEventListener('click', closeMenu);
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeMenu();
-    if (e.key === '/' && !document.body.classList.contains('workbook-page') && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+    if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
       const search = document.querySelector('#global-search'); if (search?.offsetParent) { e.preventDefault(); search.focus(); }
     }
   });

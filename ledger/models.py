@@ -6,17 +6,51 @@ from django.db import models
 from django.utils import timezone
 
 
-class WorkspaceState(models.Model):
-    """One database row serializes writes, including SQLite imports/payments."""
-    revision = models.PositiveBigIntegerField(default=0)
-
-
-class Counterparty(models.Model):
-    name = models.CharField(_('Контрагент'), max_length=250)
-    key = models.CharField(max_length=500, unique=True)
+class Workspace(models.Model):
+    name = models.CharField(_('Название компании'), max_length=180)
+    key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['name', 'pk']
+
+    def __str__(self):
+        return self.name
+
+
+def default_workspace_id():
+    """Compatibility default for fixtures and direct service use."""
+    return Workspace.objects.order_by('pk').values_list('pk', flat=True).first() or 1
+
+
+class WorkspaceMembership(models.Model):
+    class Role(models.TextChoices):
+        OWNER = 'owner', _('Владелец')
+        MEMBER = 'member', _('Сотрудник')
+
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='memberships')
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='workspace_membership')
+    role = models.CharField(max_length=12, choices=Role.choices, default=Role.OWNER)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class WorkspaceState(models.Model):
+    """One row per company serializes financial writes."""
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='states', default=default_workspace_id)
+    revision = models.PositiveBigIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['workspace'], name='unique_workspace_state')]
+
+
+class Counterparty(models.Model):
+    workspace = models.ForeignKey(Workspace, on_delete=models.PROTECT, related_name='counterparties', default=default_workspace_id)
+    name = models.CharField(_('Контрагент'), max_length=250)
+    key = models.CharField(max_length=500)
+
+    class Meta:
+        ordering = ['name', 'pk']
+        constraints = [models.UniqueConstraint(fields=['workspace', 'key'], name='unique_workspace_counterparty')]
 
     def __str__(self):
         return self.name
@@ -27,9 +61,10 @@ class ImportBatch(models.Model):
         PREVIEW = 'preview', _('На проверке')
         IMPORTED = 'imported', _('Импортирован')
         SUPERSEDED = 'superseded', _('Архив')
+    workspace = models.ForeignKey(Workspace, on_delete=models.PROTECT, related_name='imports', default=default_workspace_id)
     filename = models.CharField(max_length=255)
     file = models.FileField(upload_to='imports/%Y/%m/')
-    sha256 = models.CharField(max_length=64, unique=True)
+    sha256 = models.CharField(max_length=64)
     format = models.CharField(max_length=20)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PREVIEW)
     report_date = models.DateField(null=True, blank=True)
@@ -41,6 +76,7 @@ class ImportBatch(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [models.UniqueConstraint(fields=['workspace', 'sha256'], name='unique_workspace_import_hash')]
 
 
 class SourceSheet(models.Model):
@@ -57,7 +93,8 @@ class SourceSheet(models.Model):
 
 
 class ActiveRecord(models.Model):
-    uid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    workspace = models.ForeignKey(Workspace, on_delete=models.PROTECT, default=default_workspace_id)
+    uid = models.UUIDField(default=uuid.uuid4, editable=False)
     batch = models.ForeignKey(ImportBatch, null=True, blank=True, on_delete=models.PROTECT)
     active = models.BooleanField(default=True, db_index=True)
     source_sheet = models.CharField(max_length=100, blank=True)
@@ -86,7 +123,8 @@ class Operation(ActiveRecord):
 
     class Meta:
         ordering = ['-date', '-id']
-        constraints = [models.CheckConstraint(condition=~models.Q(amount=0), name='nonzero_operation_amount')]
+        constraints = [models.CheckConstraint(condition=~models.Q(amount=0), name='nonzero_operation_amount'),
+                       models.UniqueConstraint(fields=['workspace', 'uid'], name='unique_workspace_operation_uid')]
 
 
 class Delivery(ActiveRecord):
@@ -122,7 +160,8 @@ class Delivery(ActiveRecord):
         ordering = ['-date', '-id']
         constraints = [models.CheckConstraint(condition=models.Q(gross__gte=models.F('tare')), name='gross_above_tare'),
                        models.CheckConstraint(condition=models.Q(discount__gte=0, discount__lte=100), name='discount_range'),
-                       models.CheckConstraint(condition=models.Q(tare__gte=0, price__gte=0), name='positive_delivery_inputs')]
+                       models.CheckConstraint(condition=models.Q(tare__gte=0, price__gte=0), name='positive_delivery_inputs'),
+                       models.UniqueConstraint(fields=['workspace', 'uid'], name='unique_workspace_delivery_uid')]
 
 
 class PartnerBalance(ActiveRecord):
@@ -150,7 +189,8 @@ class PartnerBalance(ActiveRecord):
     class Meta:
         ordering = ['name']
         constraints = [models.CheckConstraint(condition=models.Q(paid_amount__gte=0), name='paid_amount_nonnegative'),
-                       models.CheckConstraint(condition=models.Q(paid_amount__lte=models.functions.Abs('balance')), name='paid_within_debt')]
+                       models.CheckConstraint(condition=models.Q(paid_amount__lte=models.functions.Abs('balance')), name='paid_within_debt'),
+                       models.UniqueConstraint(fields=['workspace', 'uid'], name='unique_workspace_debt_uid')]
 
 
 class DebtPayment(models.Model):
@@ -171,6 +211,7 @@ class DebtPayment(models.Model):
 
 
 class RecordChange(models.Model):
+    workspace = models.ForeignKey(Workspace, on_delete=models.PROTECT, related_name='changes', default=default_workspace_id)
     kind = models.CharField(max_length=20)
     record_id = models.PositiveBigIntegerField()
     action = models.CharField(max_length=20)
@@ -185,6 +226,7 @@ class RecordChange(models.Model):
 
 
 class Activity(models.Model):
+    workspace = models.ForeignKey(Workspace, on_delete=models.PROTECT, related_name='activities', default=default_workspace_id)
     title = models.CharField(max_length=255)
     detail = models.CharField(max_length=500, blank=True)
     kind = models.CharField(max_length=30, default='edit')
@@ -192,31 +234,3 @@ class Activity(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-
-
-class WorkingWorkbook(models.Model):
-    batch = models.OneToOneField(ImportBatch, on_delete=models.PROTECT, related_name='working_book')
-    data = models.JSONField(default=dict)
-    projection = models.JSONField(default=dict)
-    ledger_baseline = models.JSONField(default=dict)
-    revision = models.PositiveIntegerField(default=1)
-    applied_revision = models.PositiveIntegerField(default=1)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        permissions = [('edit_workbook_formulas', 'Can edit workbook formulas and structure')]
-
-
-class WorkbookVersion(models.Model):
-    workbook = models.ForeignKey(WorkingWorkbook, on_delete=models.CASCADE, related_name='versions')
-    revision = models.PositiveIntegerField()
-    payload = models.BinaryField()
-    changes = models.JSONField(default=list)
-    actor = models.CharField(max_length=150, blank=True)
-    reason = models.CharField(max_length=30, default='edit')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-revision']
-        constraints = [models.UniqueConstraint(fields=['workbook', 'revision'], name='unique_workbook_revision')]

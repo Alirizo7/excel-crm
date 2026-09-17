@@ -1,9 +1,11 @@
 import hashlib
+import gzip
+import json
 import shutil
 from pathlib import Path
 
 from django.conf import settings
-from django.core.management import call_command
+from django.core import serializers
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
@@ -17,8 +19,7 @@ from ledger.models import (
     PartnerBalance,
     RecordChange,
     SourceSheet,
-    WorkingWorkbook,
-    WorkbookVersion,
+    Workspace,
 )
 
 
@@ -33,13 +34,16 @@ class Command(BaseCommand):
     help = 'Установить готовую стартовую базу и загруженный Excel в пустой проект'
 
     def handle(self, *args, **options):
-        if ImportBatch.objects.exists():
+        workspace = Workspace.objects.order_by('pk').first()
+        if workspace is None:
+            raise CommandError('Сначала выполните миграции.')
+        if ImportBatch.objects.filter(workspace=workspace).exists():
             self.stdout.write('Стартовые данные уже установлены; существующая база сохранена.')
             return
 
         business_models = (
             Operation, Delivery, PartnerBalance, DebtPayment, RecordChange,
-            Activity, WorkingWorkbook, WorkbookVersion, SourceSheet, Counterparty,
+            Activity, SourceSheet, Counterparty,
         )
         if any(model.objects.exists() for model in business_models):
             raise CommandError('База уже содержит данные. Автоматическая установка отменена, чтобы их не перезаписать.')
@@ -58,8 +62,22 @@ class Command(BaseCommand):
 
         try:
             with transaction.atomic():
-                call_command('loaddata', str(FIXTURE), verbosity=0)
-                batch = ImportBatch.objects.select_related('working_book').get(sha256=WORKBOOK_SHA256)
+                with gzip.open(FIXTURE, 'rt', encoding='utf-8') as source:
+                    fixture = json.load(source)
+                workspace_models = {
+                    'ledger.workspacestate', 'ledger.counterparty', 'ledger.importbatch',
+                    'ledger.operation', 'ledger.delivery', 'ledger.partnerbalance',
+                    'ledger.recordchange', 'ledger.activity',
+                }
+                fixture = [item for item in fixture if item['model'] not in {
+                    'ledger.workingworkbook', 'ledger.workbookversion',
+                }]
+                for item in fixture:
+                    if item['model'] in workspace_models:
+                        item['fields']['workspace'] = workspace.pk
+                for item in serializers.deserialize('json', json.dumps(fixture, ensure_ascii=False)):
+                    item.save()
+                batch = ImportBatch.objects.get(workspace=workspace, sha256=WORKBOOK_SHA256)
                 if batch.file.name != WORKBOOK_MEDIA_NAME or batch.status != 'imported':
                     raise CommandError('Стартовый снимок не прошёл внутреннюю проверку.')
         except Exception:
@@ -68,5 +86,5 @@ class Command(BaseCommand):
             raise
 
         self.stdout.write(self.style.SUCCESS(
-            'Готовая база установлена: пользователь admin, Excel 01.09.2026.xlsx и рабочая таблица.'
+            'Демо-данные установлены: Excel 01.09.2026.xlsx, операции, поставки и долги.'
         ))

@@ -12,7 +12,7 @@ from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from openpyxl import Workbook, load_workbook
 
-from .models import Operation, Delivery, PartnerBalance, ImportBatch, SourceSheet
+from .models import Operation, Delivery, PartnerBalance, ImportBatch, SourceSheet, Workspace, WorkspaceMembership
 from .forms import DeliveryForm
 from .services.importing import stage_import, commit_import, inspect_workbook, OP_HEADERS, DEL_HEADERS
 from .services.exporting import make_export
@@ -53,6 +53,7 @@ class WorkflowTests(TestCase):
         self.addCleanup(self.settings_override.disable)
         self.addCleanup(self.temp.cleanup)
         self.user = get_user_model().objects.create_user('tester', password='strong-test-password')
+        WorkspaceMembership.objects.create(user=self.user, workspace=Workspace.objects.order_by('pk').first())
         self.client.force_login(self.user)
 
     def test_legacy_reconciliation_and_date_inheritance(self):

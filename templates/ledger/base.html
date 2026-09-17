@@ -8,19 +8,20 @@
 <button class="sidebar-overlay" aria-label="{% translate 'Закрыть меню' %}" data-close-menu></button>
 <aside class="sidebar" id="sidebar">
 <a class="brand" href="{% url 'home' %}"><span class="brand-mark"><b></b><b></b><b></b></span>metalflow<span class="brand-dot">.</span></a>
-<div class="simple-workspace">{% translate "Учёт металла" %}</div>
+<div class="simple-workspace">{{ current_workspace.name }}</div>
 <nav aria-label="{% translate 'Основная навигация' %}" class="simple-nav">
-<a href="{% url 'workbooks' %}" class="nav-link {% if nav == 'workbooks' or nav == 'imports' or nav == 'sheets' %}active{% endif %}">{% include 'ledger/icon.html' with name='sheet' %}<span>{% translate "Таблица" %}<small>{% translate "Данные и формулы" %}</small></span></a>
+<a href="{% url 'dashboard' %}" class="nav-link {% if nav == 'dashboard' %}active{% endif %}">{% include 'ledger/icon.html' with name='grid' %}<span>{% translate "Обзор" %}<small>{% translate "Главные цифры" %}</small></span></a>
+<a href="{% url 'operations' %}" class="nav-link {% if nav == 'operations' %}active{% endif %}">{% include 'ledger/icon.html' with name='arrows' %}<span>{% translate "Деньги" %}<small>{% translate "Приход и расход" %}</small></span></a>
+<a href="{% url 'deliveries' %}" class="nav-link {% if nav == 'deliveries' %}active{% endif %}">{% include 'ledger/icon.html' with name='truck' %}<span>{% translate "Поставки" %}<small>{% translate "Вес и стоимость" %}</small></span></a>
 <a href="{% url 'partners' %}" class="nav-link {% if nav == 'partners' %}active{% endif %}">{% include 'ledger/icon.html' with name='users' %}<span>{% translate "Долги" %}<small>{% translate "Кто должен и сколько" %}</small></span></a>
-<a href="{% url 'dashboard' %}" class="nav-link {% if nav == 'dashboard' or nav == 'operations' or nav == 'deliveries' or nav == 'exports' %}active{% endif %}">{% include 'ledger/icon.html' with name='grid' %}<span>{% translate "Итоги" %}<small>{% translate "Деньги, металл и отчёты" %}</small></span></a>
 </nav>
 <div class="sidebar-bottom">
-<details class="sidebar-help"><summary>{% include 'ledger/icon.html' with name='help' %}{% translate "Как пользоваться" %}</summary><p>{% translate "Таблица: измените ячейки и нажмите «Сохранить изменения»." %}</p><p>{% translate "Долги: найдите человека и нажмите «Внести оплату»." %}</p><p>{% translate "Итоги: посмотрите суммы или скачайте отчёт." %}</p></details>
+<a class="nav-link import-link {% if nav == 'imports' or nav == 'sheets' %}active{% endif %}" href="{% url 'imports' %}">{% include 'ledger/icon.html' with name='upload' %}<span>{% translate "Импорт Excel" %}<small>{% translate "Загрузить или обновить данные" %}</small></span></a>
+<details class="sidebar-help"><summary>{% include 'ledger/icon.html' with name='help' %}{% translate "Как пользоваться" %}</summary><p>{% translate "Добавляйте новые операции, поставки и долги через большие кнопки на каждой странице." %}</p><p>{% translate "Excel нужен только для первоначального переноса или обновления исходных данных." %}</p></details>
 <div class="profile"><span class="profile-avatar">{{ user.username|first|upper }}</span><div><strong>{{ user.username }}</strong></div><form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="icon-button" title="{% translate 'Выйти' %}" aria-label="{% translate 'Выйти' %}">{% include 'ledger/icon.html' with name='out' %}</button></form></div>
 </div></aside>
 <div class="app-shell"><header class="topbar"><div class="breadcrumb"><button class="icon-button mobile-menu" data-menu aria-label="{% translate 'Открыть меню' %}" aria-controls="sidebar" aria-expanded="false">{% include 'ledger/icon.html' with name='menu' %}</button><strong>{{ title|ui }}</strong></div><div class="topbar-right">{% include 'ledger/language_switcher.html' %}</div></header>
 <main id="main" class="main-content">
-{% if pending_workbook and nav != 'workbooks' %}<div class="simple-hint pending-notice">{% translate "В таблице есть правки, которые ещё не вошли в итоги." %} <a href="{% url 'workbook_detail' pending_workbook.pk %}">{% translate "Открыть таблицу и сохранить" %} →</a></div>{% endif %}
 {% for message in messages %}<div class="toast {{ message.tags }}" role="status">{% include 'ledger/icon.html' with name='info' %}<span>{{ message|ui }}</span><button class="icon-button" data-dismiss aria-label="{% translate 'Закрыть сообщение' %}">{% include 'ledger/icon.html' with name='close' %}</button></div>{% endfor %}
 {% block content %}{% endblock %}
 </main></div></body></html>

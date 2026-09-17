@@ -1,14 +1,13 @@
 from django.utils.translation import gettext
-from django.db.models import F
-from .models import ImportBatch, WorkingWorkbook
+from .models import ImportBatch
 
 
 def workspace(request):
     if not request.user.is_authenticated:
         return {}
-    batch = ImportBatch.objects.filter(format='legacy', status='imported').first()
-    return {'current_batch': batch,
-            'pending_workbook': WorkingWorkbook.objects.filter(batch=batch, revision__gt=F('applied_revision')).only('pk').first() if batch else None,
+    current = getattr(request, 'workspace', None)
+    batch = ImportBatch.objects.filter(workspace=current, format='legacy', status='imported').first() if current else None
+    return {'current_workspace': current, 'current_batch': batch,
             'client_messages': {
                 # Match the server's money filter in both interface languages:
                 # spaces group thousands and a comma separates decimals.

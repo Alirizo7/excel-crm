@@ -1,7 +1,0 @@
-{% extends 'ledger/base.html' %}{% load i18n %}{% block content %}
-<section class="start-page"><span class="start-icon">{% include 'ledger/icon.html' with name='sheet' %}</span>
-{% if batch %}<h1>{% translate "Ваша таблица готова" %}</h1><p>{{ batch.filename }}</p><p>{% translate "Откройте её, чтобы менять данные и автоматически пересчитывать формулы." %}</p>
-<form method="post" action="{% url 'workbook_create' batch.pk %}">{% csrf_token %}<button class="button primary" data-busy-submit>{% translate "Открыть таблицу" %}</button></form>
-{% else %}<h1>{% translate "Начните с вашей таблицы" %}</h1><p>{% translate "Загрузите Excel. Здесь появятся ваши листы, данные и формулы." %}</p><a class="button primary" href="{% url 'imports' %}">{% include 'ledger/icon.html' with name='upload' %}{% translate "Загрузить Excel" %}</a>{% endif %}
-<p class="start-footnote">{% translate "Дальше всё просто: измените ячейку и нажмите «Сохранить изменения»." %}</p></section>
-{% endblock %}

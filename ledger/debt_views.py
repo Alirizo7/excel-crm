@@ -20,14 +20,15 @@ def actor(request):
 
 
 def partners(request):
-    rows = debt_rows().filter(active=True)
+    rows = debt_rows(request.workspace).filter(active=True)
     stats = debt_stats(rows)
-    stats['paid'] = DebtPayment.objects.filter(cancelled_at=None).aggregate(total=Sum('amount'))['total'] or 0
-    stats['paid_in'] = DebtPayment.objects.filter(cancelled_at=None, debt__balance__gt=0).aggregate(total=Sum('amount'))['total'] or 0
-    stats['paid_out'] = DebtPayment.objects.filter(cancelled_at=None, debt__balance__lt=0).aggregate(total=Sum('amount'))['total'] or 0
+    company_payments = DebtPayment.objects.filter(debt__workspace=request.workspace)
+    stats['paid'] = company_payments.filter(cancelled_at=None).aggregate(total=Sum('amount'))['total'] or 0
+    stats['paid_in'] = company_payments.filter(cancelled_at=None, debt__balance__gt=0).aggregate(total=Sum('amount'))['total'] or 0
+    stats['paid_out'] = company_payments.filter(cancelled_at=None, debt__balance__lt=0).aggregate(total=Sum('amount'))['total'] or 0
     status = request.GET.get('status', 'open')
     if status == 'deleted':
-        rows = debt_rows().filter(deleted_at__isnull=False, archived_at=None)
+        rows = debt_rows(request.workspace).filter(deleted_at__isnull=False, archived_at=None)
     elif status == 'closed':
         rows = rows.filter(amount_left=0)
     elif status == 'overdue':
@@ -43,13 +44,13 @@ def partners(request):
         rows = rows.filter(balance__lt=0)
     return render(request, 'ledger/partners.html', {'nav': 'partners', 'title': _('Долги'),
         'page': Paginator(rows.order_by('-amount_left', 'name', 'pk'), 25).get_page(request.GET.get('page')),
-        'stats': stats, 'status': status, 'recent_payments': DebtPayment.objects.select_related('debt__counterparty').all()[:6]})
+        'stats': stats, 'status': status, 'recent_payments': company_payments.select_related('debt__counterparty')[:6]})
 
 
 def partner_detail(request, pk):
-    partner = get_object_or_404(Counterparty, pk=pk)
-    rows = debt_rows().filter(counterparty=partner, active=True)
-    payments = DebtPayment.objects.filter(debt__counterparty=partner).select_related('debt')
+    partner = get_object_or_404(Counterparty, workspace=request.workspace, pk=pk)
+    rows = debt_rows(request.workspace).filter(counterparty=partner, active=True)
+    payments = DebtPayment.objects.filter(debt__workspace=request.workspace, debt__counterparty=partner).select_related('debt')
     filters = DateFilters(request.GET)
     if filters.is_valid():
         if filters.cleaned_data.get('start'):
@@ -62,30 +63,30 @@ def partner_detail(request, pk):
     return render(request, 'ledger/partner_detail.html', {'nav': 'partners', 'title': partner.name, 'partner': partner,
         'debts': rows, 'stats': debt_stats(rows), 'paid': paid, 'filters': filters,
         'page': Paginator(payments, 20).get_page(request.GET.get('page')),
-        'archived_debts': debt_rows().filter(counterparty=partner, active=False)})
+        'archived_debts': debt_rows(request.workspace).filter(counterparty=partner, active=False)})
 
 
 def debt_detail(request, pk):
-    debt = get_object_or_404(debt_rows(), pk=pk)
+    debt = get_object_or_404(debt_rows(request.workspace), pk=pk)
     return render(request, 'ledger/debt_detail.html', {'nav': 'partners', 'title': _('Карточка долга'), 'debt': debt,
-        'payments': debt.payments.all(), 'changes': change_history('partners', pk),
+        'payments': debt.payments.all(), 'changes': change_history('partners', pk, request.workspace),
         'can_restore': bool(debt.deleted_at) and not debt.archived_at})
 
 
 def debt_form(request, pk=None):
-    debt = get_object_or_404(PartnerBalance, pk=pk, active=True) if pk else PartnerBalance()
+    debt = get_object_or_404(PartnerBalance, workspace=request.workspace, pk=pk, active=True) if pk else PartnerBalance(workspace=request.workspace)
     initial = {'name': request.GET.get('name', '')} if not pk else {}
     form = DebtForm(instance=debt, initial=initial)
     if request.method == 'POST':
-        with workspace_transaction():
-            debt = get_object_or_404(PartnerBalance, pk=pk, active=True) if pk else PartnerBalance()
+        with workspace_transaction(request.workspace):
+            debt = get_object_or_404(PartnerBalance, workspace=request.workspace, pk=pk, active=True) if pk else PartnerBalance(workspace=request.workspace)
             before = snapshot(debt) if pk else {}
             form = DebtForm(request.POST, instance=debt)
             if form.is_valid():
                 try:
                     check_revision(debt, form.cleaned_data.get('revision') or 0)
                     debt.balance = form.cleaned_data['principal'] * (1 if form.cleaned_data['side'] == 'receivable' else -1)
-                    debt.counterparty = partner_for(debt.name)
+                    debt.counterparty = partner_for(debt.name, request.workspace)
                     changed(debt)
                     debt.full_clean()
                     debt.save()
@@ -104,8 +105,8 @@ def debt_toggle(request, pk, restore=False):
     if not form.is_valid():
         messages.error(request, _('Обновите страницу и повторите действие.'))
         return redirect('debt_detail', pk=pk)
-    with workspace_transaction():
-        debt = get_object_or_404(PartnerBalance.objects.select_related('batch'), pk=pk, active=not restore)
+    with workspace_transaction(request.workspace):
+        debt = get_object_or_404(PartnerBalance.objects.select_related('batch'), workspace=request.workspace, pk=pk, active=not restore)
         try:
             set_record_active(debt, 'partners', restore, form.cleaned_data['revision'], actor(request))
         except ValidationError as exc:
@@ -116,12 +117,12 @@ def debt_toggle(request, pk, restore=False):
 
 
 def payment_new(request, pk):
-    debt = get_object_or_404(debt_rows(), pk=pk)
+    debt = get_object_or_404(debt_rows(request.workspace), pk=pk)
     form = PaymentForm(request.POST or None, initial={'revision': debt.revision, 'request_key': uuid.uuid4(),
                                                      'date': timezone.localdate(), 'amount': debt.outstanding})
     if request.method == 'POST' and form.is_valid():
         try:
-            payment, created = record_payment(pk, **form.cleaned_data, actor=actor(request))
+            payment, created = record_payment(pk, **form.cleaned_data, actor=actor(request), workspace=request.workspace)
         except ValidationError as exc:
             form.add_error(None, exc)
         else:
@@ -131,11 +132,11 @@ def payment_new(request, pk):
 
 
 def payment_cancel(request, pk):
-    payment = get_object_or_404(DebtPayment.objects.select_related('debt__counterparty'), pk=pk)
+    payment = get_object_or_404(DebtPayment.objects.select_related('debt__counterparty'), debt__workspace=request.workspace, pk=pk)
     form = CancelPaymentForm(request.POST or None, initial={'revision': payment.debt.revision})
     if request.method == 'POST' and form.is_valid():
         try:
-            cancel_payment(pk, reason=form.cleaned_data['reason'], revision=form.cleaned_data['revision'], actor=actor(request))
+            cancel_payment(pk, reason=form.cleaned_data['reason'], revision=form.cleaned_data['revision'], actor=actor(request), workspace=request.workspace)
         except ValidationError as exc:
             form.add_error(None, exc)
         else:
